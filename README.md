@@ -4,6 +4,9 @@ Plataforma web que conecta estudiantes (voluntarios) con organizaciones sociales
 
 El proyecto esta construido sobre Laravel (aplicacion monolitica con Blade como capa de frontend). No es una SPA separada: cada pagina es una vista Blade servida por rutas web, y la interactividad (navegacion por pestanas de los paneles, sliders, chats, toasts, tema oscuro) vive en un unico archivo JavaScript vanilla.
 
+![Pagina principal](assets/vmatch.png)
+
+
 ## Stack
 
 - Laravel (PHP 8.x) con Blade templates.
