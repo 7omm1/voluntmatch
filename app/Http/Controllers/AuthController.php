@@ -1,0 +1,178 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use App\Support\ChatDemo;
+use App\Support\Peru;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\Rule;
+
+class AuthController extends Controller
+{
+    /** Opciones que los formularios de registro usan en sus selects. */
+    private function camposComunes(): array
+    {
+        return [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'phone' => 'nullable|string|regex:/^9\d{8}$/',
+            'region' => ['nullable', Rule::in(Peru::REGIONES)],
+            'terms' => 'accepted',
+        ];
+    }
+
+    public function index()
+    {
+        return view('modules/auth/login');
+    }
+
+    public function registroVoluntario()
+    {
+        return view('modules/auth/registro-voluntario', [
+            'regiones' => Peru::REGIONES,
+            'ciclos' => Peru::CICLOS,
+            'disponibilidades' => Peru::DISPONIBILIDADES,
+            'intereses' => Peru::INTERESES,
+            'universidades' => Peru::UNIVERSIDADES,
+        ]);
+    }
+
+    public function registroOrganizacion()
+    {
+        return view('modules/auth/registro-organizacion', [
+            'regiones' => Peru::REGIONES,
+            'tipos' => Peru::TIPOS_ORGANIZACION,
+            'sectores' => Peru::SECTORES,
+        ]);
+    }
+
+    public function registrar(Request $request)
+    {
+        $role = $request->input('role') === 'organizacion' ? 'organizacion' : 'voluntario';
+
+        $rules = $role === 'organizacion'
+            ? $this->reglasOrganizacion()
+            : $this->reglasVoluntario();
+
+        $datos = $request->validate($rules + $this->camposComunes(), $this->mensajes());
+
+        $user = new User();
+        $user->fill($datos);
+        $user->role = $role;
+        $user->city = $role === 'organizacion' ? ($datos['city'] ?? null) : null;
+        $user->save();
+
+        return redirect()->route('login')->with(
+            'success',
+            $role === 'organizacion'
+                ? '¡Organización registrada! Tu cuenta está lista, ya puedes iniciar sesión.'
+                : '¡Cuenta creada con éxito! Ya puedes iniciar sesión.'
+        );
+    }
+
+    private function reglasVoluntario(): array
+    {
+        return [
+            'dni' => ['nullable', 'digits:8', Rule::unique('users', 'dni')],
+            'university' => 'nullable|string|max:150',
+            'career' => 'nullable|string|max:150',
+            'cycle' => ['nullable', Rule::in(Peru::CICLOS)],
+            'availability' => ['nullable', Rule::in(array_keys(Peru::DISPONIBILIDADES))],
+            'city' => 'nullable|string|max:100',
+            'interests' => 'nullable|array|max:6',
+            'interests.*' => ['string', Rule::in(Peru::INTERESES)],
+        ];
+    }
+
+    private function reglasOrganizacion(): array
+    {
+        return [
+            'ruc' => ['nullable', 'digits:11', 'regex:/^(10|15|17|20)\d{9}$/', Rule::unique('users', 'ruc')],
+            'org_type' => ['nullable', Rule::in(Peru::TIPOS_ORGANIZACION)],
+            'legal_rep' => 'nullable|string|max:150',
+            'city' => 'nullable|string|max:100',
+            'address' => 'nullable|string|max:255',
+            'sector' => ['nullable', Rule::in(Peru::SECTORES)],
+            'mission' => 'nullable|string|min:30|max:1000',
+            'website' => 'nullable|string|max:255|url',
+        ];
+    }
+
+    private function mensajes(): array
+    {
+        return [
+            'name.required' => 'Ingresa tu nombre completo o el de la organización.',
+            'email.required' => 'Ingresa un correo electrónico.',
+            'email.email' => 'Ingresa un correo electrónico válido.',
+            'email.unique' => 'Ya existe una cuenta registrada con ese correo.',
+            'password.required' => 'Ingresa una contraseña.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
+            'phone.required' => 'Ingresa un número de celular de contacto.',
+            'phone.regex' => 'El celular debe tener 9 dígitos y empezar con 9 (ej. 987654321).',
+            'dni.required' => 'Ingresa tu DNI.',
+            'dni.digits' => 'El DNI debe tener exactamente 8 dígitos.',
+            'dni.unique' => 'Ya existe una cuenta registrada con ese DNI.',
+            'ruc.required' => 'Ingresa el RUC de la organización.',
+            'ruc.digits' => 'El RUC debe tener exactamente 11 dígitos.',
+            'ruc.regex' => 'El RUC debe empezar con 10, 15, 17 o 20.',
+            'ruc.unique' => 'Ya existe una organización registrada con ese RUC.',
+            'university.required' => 'Indica tu universidad o instituto.',
+            'career.required' => 'Indica la carrera que estudias.',
+            'cycle.required' => 'Indica el ciclo en el que te encuentras.',
+            'availability.required' => 'Indica cuántas horas por semana puedes aportar.',
+            'region.required' => 'Selecciona tu región.',
+            'region.in' => 'Selecciona una región válida del Perú.',
+            'city.required' => 'Indica la ciudad o distrito.',
+            'legal_rep.required' => 'Indica el nombre del representante legal.',
+            'address.required' => 'Indica la dirección de la organización.',
+            'sector.required' => 'Selecciona la causa o sector principal.',
+            'mission.required' => 'Cuéntanos brevemente la misión de la organización.',
+            'mission.min' => 'La misión debe tener al menos 30 caracteres.',
+            'org_type.required' => 'Selecciona el tipo de organización.',
+            'website.url' => 'El sitio web debe ser una dirección válida (ej. https://mi-ong.org).',
+            'terms.accepted' => 'Debes aceptar los términos y la política de privacidad.',
+        ];
+    }
+
+    public function logear(Request $request)
+    {
+        $credenciales = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if (Auth::attempt($credenciales)) {
+            $request->session()->regenerate();
+            return redirect()->route('home');
+        }
+
+        return back()->with('error', 'El correo electrónico o la contraseña son incorrectos.');
+    }
+
+    public function logout(Request $request)
+    {
+        Session::flush();
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('index');
+    }
+
+    public function home()
+    {
+        return match (auth()->user()->role) {
+            'admin' => redirect()->route('dashboard-admin'),
+            'organizacion' => redirect()->route('dashboard-organizacion'),
+            default => view('dashboard/voluntario', [
+                'oportunidades' => OportunidadController::demo(),
+                'conversaciones' => ChatDemo::conversaciones(),
+                'noLeidos' => ChatDemo::noLeidos(),
+            ]),
+        };
+    }
+}
