@@ -91,6 +91,7 @@
 
             {{-- OVERVIEW --}}
             <div data-panel="overview" data-heading="Hola, equipo {{ explode(' ', trim($user->name))[0] }}.">
+                @include('partials.anuncios')
                 <div class="metric-grid metric-grid-four">
                     <article>
                         <span><x-icon name="spark" /></span>
