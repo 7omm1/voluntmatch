@@ -5179,3 +5179,152 @@ footer {
   }
 }
 
+/* ============================================================
+   DASHBOARD ONG — oportunidades: filtros, progreso y métricas
+============================================================ */
+.project-filters {
+  padding: 4px 0 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.project-filters button {
+  padding: 8px 13px;
+  border: 1px solid #deddd6;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #657572;
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.project-filters button:hover {
+  border-color: #c4c2bb;
+  color: #183b3f;
+}
+.project-filters button.active {
+  color: white;
+  background: #183b3f;
+  border-color: #183b3f;
+}
+.project-filters button b {
+  font: 800 9px "Manrope";
+}
+.project-search {
+  margin-top: 0;
+  height: 52px;
+  border-radius: 12px;
+}
+.project-manage .application-row {
+  flex-wrap: wrap;
+  row-gap: 10px;
+}
+.row-progress {
+  min-width: 128px;
+  flex: 0 1 168px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.row-progress small {
+  margin-top: 0;
+  color: #7d8886;
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.row-progress i {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #e8e6df;
+}
+.row-progress i b {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #4b8178, #9ac8bc);
+}
+.row-metrics {
+  min-width: 92px;
+  display: flex;
+  flex-direction: column;
+}
+.row-metrics b {
+  color: #183b3f;
+  font: 700 14px "Manrope";
+}
+.row-metrics small {
+  margin-top: 2px;
+  color: #7d8886;
+  font-size: 9px;
+  white-space: nowrap;
+}
+.row-metrics em {
+  margin-top: 3px;
+  color: #476c9c;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 800;
+}
+.status.finalizado {
+  color: #6d7a78 !important;
+  background: #e9e7e0;
+}
+
+/* ============================================================
+   MODO OSCURO — oportunidades: filtros, progreso y métricas
+============================================================ */
+.dark .project-filters button {
+  border-color: var(--line);
+  color: var(--ink-soft);
+}
+.dark .project-filters button:hover {
+  color: var(--ink);
+  border-color: var(--coral);
+}
+.dark .project-filters button.active {
+  color: white;
+  background: #12454b;
+  border-color: #12454b;
+}
+.dark .project-search {
+  border-color: var(--line);
+  background: var(--card);
+  color: var(--ink);
+}
+.dark .row-progress i {
+  background: rgba(255, 255, 255, 0.12);
+}
+.dark .row-progress small,
+.dark .row-metrics small {
+  color: var(--ink-soft);
+}
+.dark .row-metrics b {
+  color: var(--ink);
+}
+.dark .row-metrics em {
+  color: #9ec1ee;
+}
+.dark .status.finalizado {
+  color: #b6c3c1 !important;
+  background: rgba(255, 255, 255, 0.09) !important;
+}
+@media (max-width: 760px) {
+  .row-progress,
+  .row-metrics {
+    flex-basis: 100%;
+  }
+  .project-filters {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 12px;
+  }
+}
+

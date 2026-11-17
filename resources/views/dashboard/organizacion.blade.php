@@ -210,8 +210,18 @@
             </div>
 
             {{-- PROYECTOS --}}
+            @php
+                $estados = [
+                    'all' => 'Todos',
+                    'activo' => 'Activos',
+                    'reclutando' => 'Reclutando',
+                    'borrador' => 'Borradores',
+                    'finalizado' => 'Finalizados',
+                ];
+                $porEstado = collect($proyectos)->groupBy('status');
+            @endphp
             <div data-panel="projects" data-heading="Oportunidades" hidden>
-                <section class="dashboard-card table-card">
+                <section class="dashboard-card table-card project-manage">
                     <div class="card-heading">
                         <div>
                             <p>GESTIÓN DE OPORTUNIDADES</p>
@@ -219,42 +229,56 @@
                         </div>
                         <button type="button" data-add-project>+ Publicar necesidad</button>
                     </div>
-                    <div class="application-row" data-project-row>
-                        <span class="list-icon"><x-icon name="heart" /></span>
-                        <span>
-                            <b>Campaña de educación rural</b>
-                            <small>8 candidatos · Actualizado hoy</small>
-                        </span>
-                        <span class="status activo">Activo</span>
-                        <button type="button" data-project-open data-title="Campaña de educación rural" data-org="Fundación Horizonte"
-                            data-cause="Educación" data-skill="Docencia" data-time="Proyecto puntual" data-id="3">
-                            Gestionar <x-icon name="arrow" />
-                        </button>
+                    <div class="project-filters">
+                        @foreach ($estados as $key => $label)
+                            <button type="button" class="{{ $loop->first ? 'active' : '' }}"
+                                data-project-filter="{{ $key }}">
+                                {{ $label }}
+                                <b>{{ $key === 'all' ? count($proyectos) : ($porEstado[$key]?->count() ?? 0) }}</b>
+                            </button>
+                        @endforeach
                     </div>
-                    <div class="application-row" data-project-row>
-                        <span class="list-icon"><x-icon name="heart" /></span>
-                        <span>
-                            <b>Rediseño web accesible</b>
-                            <small>6 candidatos · Actualizado hoy</small>
-                        </span>
-                        <span class="status reclutando">Reclutando</span>
-                        <button type="button" data-project-open data-title="Rediseño web accesible" data-org="Fundación Horizonte"
-                            data-cause="Inclusión" data-skill="UX/UI" data-time="4 h/semana" data-id="1">
-                            Gestionar <x-icon name="arrow" />
-                        </button>
+                    <div class="talent-search project-search">
+                        <x-icon name="users" />
+                        <input type="text" data-project-search placeholder="Buscar proyecto por título, causa o habilidad..." />
                     </div>
-                    <div class="application-row" data-project-row>
-                        <span class="list-icon"><x-icon name="heart" /></span>
-                        <span>
-                            <b>Análisis de encuestas</b>
-                            <small>3 candidatos · Actualizado hoy</small>
-                        </span>
-                        <span class="status borrador">Borrador</span>
-                        <button type="button" data-project-open data-title="Análisis de encuestas" data-org="Fundación Horizonte"
-                            data-cause="Educación" data-skill="Análisis de datos" data-time="2 h/semana" data-id="2">
-                            Gestionar <x-icon name="arrow" />
-                        </button>
-                    </div>
+                    @foreach ($proyectos as $proyecto)
+                        <div class="application-row" data-project-row data-status="{{ $proyecto['status'] }}"
+                            data-search="{{ strtolower($proyecto['title'] . ' ' . $proyecto['cause'] . ' ' . $proyecto['skill']) }}">
+                            <span class="list-icon"><x-icon name="heart" /></span>
+                            <span>
+                                <b>{{ $proyecto['title'] }}</b>
+                                <small>{{ $proyecto['meta'] }}</small>
+                            </span>
+                            @if ($proyecto['progress'])
+                                @php $avance = $proyecto['progress']; @endphp
+                                <span class="row-progress" data-progress>
+                                    <small>{{ $avance['label'] }}: {{ $avance['done'] }}/{{ $avance['total'] }}</small>
+                                    <i><b style="width: {{ min(100, round($avance['done'] / $avance['total'] * 100)) }}%"></b></i>
+                                </span>
+                            @endif
+                            <span class="row-metrics" data-metrics>
+                                @if ($proyecto['views'])
+                                    <b>{{ $proyecto['views'] }}</b>
+                                    <small>visualizaciones</small>
+                                    <em>{{ $proyecto['conversion'] }}% postulan</em>
+                                @else
+                                    <b>—</b>
+                                    <small>sin publicar</small>
+                                @endif
+                            </span>
+                            <span class="status {{ $proyecto['status'] }}">{{ $proyecto['status_label'] }}</span>
+                            @unless ($proyecto['status'] === 'borrador')
+                                <button type="button" data-duplicate-project>Duplicar</button>
+                            @endunless
+                            <button type="button" data-project-open data-title="{{ $proyecto['title'] }}"
+                                data-org="{{ $user->name }}" data-cause="{{ $proyecto['cause'] }}"
+                                data-skill="{{ $proyecto['skill'] }}" data-time="{{ $proyecto['time'] }}"
+                                data-id="{{ $proyecto['modal_id'] }}">
+                                Gestionar <x-icon name="arrow" />
+                            </button>
+                        </div>
+                    @endforeach
                     <div data-projects-new></div>
                 </section>
             </div>
