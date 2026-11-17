@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\OportunidadesDemo;
+use Database\Factories\OportunidadFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Support\Str;
 
 class Oportunidad extends Model
 {
-    /** @use HasFactory<\Database\Factories\OportunidadFactory> */
+    /** @use HasFactory<OportunidadFactory> */
     use HasFactory;
 
     /** Laravel pluraliza en ingles; esta tabla vive en espanol. */
@@ -30,6 +31,9 @@ class Oportunidad extends Model
         'resumen',
         'aprenderas',
         'porque',
+        'estado',
+        'destacada',
+        'vistas',
     ];
 
     /**
@@ -42,7 +46,21 @@ class Oportunidad extends Model
         return [
             'porque' => 'array',
             'afinidad' => 'integer',
+            'destacada' => 'boolean',
+            'vistas' => 'integer',
         ];
+    }
+
+    /** Oportunidades visibles en el catalogo publico. */
+    public function scopePublicadas($query)
+    {
+        return $query->where('estado', 'publicada');
+    }
+
+    /** Registra una visita a la ficha publica. */
+    public function registrarVista(): void
+    {
+        static::query()->whereKey($this->getKey())->increment('vistas');
     }
 
     /** La URL publica usa el slug, nunca el id secuencial. */

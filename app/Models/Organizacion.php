@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use Database\Factories\OrganizacionFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Organizacion extends Model
 {
-    /** @use HasFactory<\Database\Factories\OrganizacionFactory> */
+    /** @use HasFactory<OrganizacionFactory> */
     use HasFactory;
 
     /** Laravel pluraliza en ingles; esta tabla vive en espanol. */
@@ -21,6 +23,9 @@ class Organizacion extends Model
         'sector',
         'mision',
         'verificada',
+        'verificada_por',
+        'verificada_at',
+        'verificacion_nota',
     ];
 
     /**
@@ -32,6 +37,7 @@ class Organizacion extends Model
     {
         return [
             'verificada' => 'boolean',
+            'verificada_at' => 'datetime',
         ];
     }
 
@@ -39,5 +45,17 @@ class Organizacion extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** Administrador que aprobo la verificacion. */
+    public function verificadaPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'verificada_por');
+    }
+
+    /** @param Builder<self> $query */
+    public function scopePendientes($query)
+    {
+        return $query->where('verificada', false);
     }
 }
