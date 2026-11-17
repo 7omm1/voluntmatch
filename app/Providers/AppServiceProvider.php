@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +22,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Anti fuerza bruta en el login: maximo 5 intentos por minuto
+        // por combinacion de correo + IP. La sesion se regenera al
+        // autenticar (ver AuthController::logear).
+        RateLimiter::for('login', function (Request $request) {
+            return Limit::perMinute(5)->by(
+                strtolower((string) $request->input('email')).'|'.$request->ip()
+            );
+        });
     }
 }

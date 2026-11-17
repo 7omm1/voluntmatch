@@ -23,8 +23,7 @@ class RegistroTest extends TestCase
 
     public function test_registro_de_estudiante_crea_rol_voluntario(): void
     {
-        $respuesta = $this->post('/registrar', [
-            'role' => 'voluntario',
+        $respuesta = $this->post('/registro-voluntario', [
             'name' => 'María González',
             'dni' => '12345678',
             'phone' => '987654321',
@@ -53,10 +52,9 @@ class RegistroTest extends TestCase
 
     public function test_registro_de_ong_crea_rol_organizacion(): void
     {
-        $respuesta = $this->post('/registrar', [
-            'role' => 'organizacion',
+        $respuesta = $this->post('/registro-organizacion', [
             'name' => 'Fundación Horizonte',
-            'ruc' => '20123456789',
+            'ruc' => '20123456786',
             'org_type' => 'Fundación',
             'legal_rep' => 'Ana Pérez',
             'phone' => '987654321',
@@ -75,7 +73,7 @@ class RegistroTest extends TestCase
 
         $user = User::where('email', 'contacto@horizonte.org')->firstOrFail();
         $this->assertSame('organizacion', $user->role);
-        $this->assertSame('20123456789', $user->ruc);
+        $this->assertSame('20123456786', $user->ruc);
 
         $this->actingAs($user)->get('/home')->assertRedirect(route('dashboard-organizacion'));
         $this->actingAs($user)->get('/dashboard-organizacion')->assertOk();
@@ -83,8 +81,7 @@ class RegistroTest extends TestCase
 
     public function test_valida_dni_y_ruc_peruanos(): void
     {
-        $this->post('/registrar', [
-            'role' => 'voluntario',
+        $this->post('/registro-voluntario', [
             'name' => 'Prueba',
             'dni' => '123',
             'phone' => '123',
@@ -95,8 +92,7 @@ class RegistroTest extends TestCase
             'terms' => '1',
         ])->assertSessionHasErrors(['dni', 'phone']);
 
-        $this->post('/registrar', [
-            'role' => 'organizacion',
+        $this->post('/registro-organizacion', [
             'name' => 'Prueba ONG',
             'ruc' => '99123456789',
             'email' => 'ong@example.com',
@@ -112,5 +108,39 @@ class RegistroTest extends TestCase
         $user = User::factory()->create(['role' => 'voluntario']);
 
         $this->actingAs($user)->get('/dashboard-organizacion')->assertForbidden();
+    }
+
+    public function test_el_rol_enviado_en_el_formulario_se_ignora(): void
+    {
+        // Aunque el payload intente colar role=admin, el controlador fija
+        // el rol segun la ruta usada.
+        $this->post('/registro-voluntario', [
+            'role' => 'admin',
+            'name' => 'Intento de escalada',
+            'email' => 'escalada@example.com',
+            'region' => 'Lima',
+            'password' => 'secreto123',
+            'password_confirmation' => 'secreto123',
+            'terms' => '1',
+        ])->assertRedirect(route('login'));
+
+        $user = User::where('email', 'escalada@example.com')->firstOrFail();
+        $this->assertSame('voluntario', $user->role);
+        $this->actingAs($user)->get('/dashboard-admin')->assertForbidden();
+    }
+
+    public function test_ruc_con_digito_verificador_invalido_es_rechazado(): void
+    {
+        // 20123456789 cumple el formato (11 digitos, prefijo 20) pero el
+        // digito verificador correcto es 6: debe ser rechazado.
+        $this->post('/registro-organizacion', [
+            'name' => 'RUC inventado',
+            'ruc' => '20123456789',
+            'email' => 'inventado@example.org',
+            'region' => 'Lima',
+            'password' => 'secreto123',
+            'password_confirmation' => 'secreto123',
+            'terms' => '1',
+        ])->assertSessionHasErrors(['ruc']);
     }
 }

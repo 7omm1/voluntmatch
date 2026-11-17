@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Support\ChatDemo;
 use App\Support\Peru;
+use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -50,10 +51,22 @@ class AuthController extends Controller
         ]);
     }
 
-    public function registrar(Request $request)
+    public function registrarVoluntario(Request $request)
     {
-        $role = $request->input('role') === 'organizacion' ? 'organizacion' : 'voluntario';
+        return $this->crearCuenta($request, 'voluntario');
+    }
 
+    public function registrarOrganizacion(Request $request)
+    {
+        return $this->crearCuenta($request, 'organizacion');
+    }
+
+    /**
+     * Crea la cuenta con el rol que fija el controlador segun la ruta usada.
+     * Nunca se lee un campo "role" del formulario.
+     */
+    private function crearCuenta(Request $request, string $role)
+    {
         $rules = $role === 'organizacion'
             ? $this->reglasOrganizacion()
             : $this->reglasVoluntario();
@@ -91,7 +104,19 @@ class AuthController extends Controller
     private function reglasOrganizacion(): array
     {
         return [
-            'ruc' => ['nullable', 'digits:11', 'regex:/^(10|15|17|20)\d{9}$/', Rule::unique('users', 'ruc')],
+            'ruc' => [
+                'nullable',
+                'digits:11',
+                'regex:/^(10|15|17|20)\d{9}$/',
+                Rule::unique('users', 'ruc'),
+                function (string $attribute, mixed $value, Closure $fail) {
+                    // Verificacion del digito verificador (modulo 11) para
+                    // rechazar RUCs inventados que cumplen el formato.
+                    if (is_string($value) && $value !== '' && ! Peru::rucValido($value)) {
+                        $fail('El RUC ingresado no pasa la verificación del dígito verificador. Revísalo con tu ficha RUC.');
+                    }
+                },
+            ],
             'org_type' => ['nullable', Rule::in(Peru::TIPOS_ORGANIZACION)],
             'legal_rep' => 'nullable|string|max:150',
             'city' => 'nullable|string|max:100',

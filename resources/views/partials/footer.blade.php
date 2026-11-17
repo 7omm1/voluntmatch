@@ -39,7 +39,7 @@
     <div class="footer-bottom">
         <span>© 2025 VoluntMatch. Hecho para conectar.</span>
         <div>
-            <a href="#">Privacidad</a>
+            <a href="{{ route('privacidad') }}">Privacidad</a>
             <a href="#">Términos</a>
             <a href="#">Cookies</a>
         </div>

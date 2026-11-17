@@ -51,9 +51,8 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('registrar') }}">
+                <form method="POST" action="{{ route('registrar-organizacion') }}">
                     @csrf
-                    <input type="hidden" name="role" value="organizacion" />
 
                     <p class="form-section-title">Datos de la organización</p>
                     <div class="form-grid">
@@ -148,7 +147,7 @@
 
                     <label class="check-row check-terms">
                         <input type="checkbox" name="terms" value="1" required @checked(old('terms')) />
-                        <span>Acepto los términos y la política de privacidad de VoluntMatch.</span>
+                        <span>Acepto los <a href="{{ route('privacidad') }}">términos y la política de privacidad</a> de VoluntMatch.</span>
                     </label>
 
                     <button class="jelly-button wide" type="submit">

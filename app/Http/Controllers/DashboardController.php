@@ -8,7 +8,7 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        abort_unless(auth()->user()->role === 'organizacion', 403);
+        // El acceso esta protegido por el middleware 'role:organizacion' en routes/web.php.
 
         return view('dashboard/organizacion', [
             'oportunidades' => OportunidadController::demo(),
@@ -183,7 +183,7 @@ class DashboardController extends Controller
 
     public function admin()
     {
-        abort_unless(auth()->user()->role === 'admin', 403);
+        // El acceso esta protegido por el middleware 'role:admin' en routes/web.php.
 
         return view('dashboard/admin', [
             'oportunidades' => OportunidadController::demo(),

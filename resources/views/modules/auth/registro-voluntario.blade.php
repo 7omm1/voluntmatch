@@ -56,10 +56,9 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('registrar') }}" data-form-steps
+                <form method="POST" action="{{ route('registrar-voluntario') }}" data-form-steps
                     data-start="{{ $abrirPaso2 ? 2 : 1 }}">
                     @csrf
-                    <input type="hidden" name="role" value="voluntario" />
 
                     <div class="step-track">
                         <button type="button" class="step-dot active" data-step-jump="1">
@@ -96,7 +95,7 @@
 
                         <label class="check-row check-terms">
                             <input type="checkbox" name="terms" value="1" required @checked(old('terms')) />
-                            <span>Acepto los términos y la política de privacidad de VoluntMatch.</span>
+                            <span>Acepto los <a href="{{ route('privacidad') }}">términos y la política de privacidad</a> de VoluntMatch.</span>
                         </label>
 
                         <button class="jelly-button wide" type="button" data-step-next>

@@ -47,8 +47,7 @@ class Peru
         'Deporte y recreación', 'Otro',
     ];
 
-    public const UNIVERSIDADES = [
-        'Universidad Nacional Mayor de San Marcos',
+    public const UNIVERSIDADES = [        'Universidad Nacional Mayor de San Marcos',
         'Universidad Nacional Agraria La Molina',
         'Universidad Nacional de Ingeniería',
         'Universidad Nacional Federico Villarreal',
@@ -79,4 +78,29 @@ class Peru
         'Universidad Señor de Sipán (Chiclayo)',
         'Instituto / Escuela superior',
     ];
+
+    /**
+     * Verifica el digito verificador de un RUC peruano de 11 digitos
+     * (algoritmo modulo 11 con los factores oficiales de SUNAT sobre
+     * los primeros 10 digitos). Rechaza RUCs inventados que cumplen
+     * el formato pero no la checksum.
+     */
+    public static function rucValido(?string $ruc): bool
+    {
+        if ($ruc === null || ! preg_match('/^(10|15|17|20)\d{9}$/', $ruc)) {
+            return false;
+        }
+
+        $factores = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+        $suma = 0;
+
+        for ($i = 0; $i < 10; $i++) {
+            $suma += (int) $ruc[$i] * $factores[$i];
+        }
+
+        // resto 10 -> digito 0, resto 11 -> digito 1
+        $digitoVerificador = (11 - ($suma % 11)) % 10;
+
+        return (int) $ruc[10] === $digitoVerificador;
+    }
 }

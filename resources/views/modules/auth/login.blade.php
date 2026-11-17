@@ -64,7 +64,8 @@
                 </form>
 
                 <p class="form-note">
-                    Al continuar aceptas nuestros términos y nuestra política de privacidad.
+                    Al continuar aceptas nuestros términos y nuestra
+                    <a href="{{ route('privacidad') }}">política de privacidad</a>.
                 </p>
             </div>
         </div>
