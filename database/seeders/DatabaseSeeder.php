@@ -20,6 +20,9 @@ class DatabaseSeeder extends Seeder
         // Catalogo de oportunidades demo en la tabla real `oportunidades`.
         $this->call(OportunidadSeeder::class);
 
+        // Varias ONG y estudiantes con perfiles y postulaciones reales.
+        $this->call(ComunidadDemoSeeder::class);
+
         // Datos demo para los modulos del panel de administracion.
         $this->call(AdminDemoSeeder::class);
     }
