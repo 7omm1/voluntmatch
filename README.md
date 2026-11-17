@@ -2,7 +2,7 @@
 
 Plataforma web que conecta estudiantes (voluntarios) con organizaciones sociales que necesitan talento para sus proyectos. La idea central: una persona quiere aportar su vocacion y una ONG busca esa vocacion para su causa. VoluntMatch hace el match entre ambos y acompana la relacion hasta el cierre del proyecto.
 
-El proyecto esta construido sobre Laravel (aplicacion monolitica con Blade como capa de frontend). No es una SPA separada: cada pagina es una vista Blade servida por rutas web, y la interactividad (navegacion por pestanas de los paneles, kanban, chats, toasts, tema oscuro) vive en JavaScript vanilla sin build.
+El proyecto esta construido sobre Laravel (aplicacion monolitica con Blade como capa de frontend). No es una SPA separada: cada pagina es una vista Blade servida por rutas web. Cada seccion de los paneles (resumen, matches, postulaciones, candidatos, metricas, etc.) tiene su propia URL y se renderiza en el servidor; la interactividad puntual (baraja de matches, kanban, chats, toasts, tema oscuro) vive en JavaScript vanilla sin build.
 
 ![Pagina principal](assets/vmatch.png)
 
@@ -65,6 +65,7 @@ voluntmatch/
 │       ├── DatabaseSeeder.php
 │       ├── AdminSeeder.php               # crea el admin con ADMIN_EMAIL / ADMIN_PASSWORD del .env
 │       ├── OportunidadSeeder.php         # siembra el catalogo demo en la tabla real `oportunidades`
+│       ├── ComunidadDemoSeeder.php       # 6 ONG y 14 estudiantes con postulaciones reales
 │       └── AdminDemoSeeder.php           # fichas de ONG, postulaciones, reportes, tickets y anuncios demo
 ├── lang/es/                              # mensajes de validacion en espanol
 ├── public/
@@ -72,8 +73,8 @@ voluntmatch/
 │   └── js/
 │       ├── site/                          # tema, menu movil, reveal, cursor, hero, toasts,
 │       │                                  # formularios por pasos y ventana de registro de ONG
-│       └── dashboard/                     # paneles: navegacion, modal de proyecto, voluntario,
-│                                          # chat, talento, admin, proyectos ONG, inbox y metricas
+│       └── dashboard/                     # interacciones: matches, modal de proyecto, chat,
+│                                          # talento, admin, proyectos ONG, inbox y metricas
 ├── resources/views/
 │   ├── layouts/base.blade.php            # plantilla base (head, tema claro/oscuro, scripts)
 │   ├── layouts/admin.blade.php           # shell del panel admin (sidebar, buscador, contadores)
@@ -85,7 +86,7 @@ voluntmatch/
 │   ├── contacto.blade.php                # formulario de contacto publico
 │   ├── pages/privacidad.blade.php        # politica de privacidad (Ley 29733)
 │   ├── modules/auth/                     # login, registro-voluntario, registro-organizacion
-│   ├── dashboard/                        # paneles privados: voluntario y organizacion
+│   ├── panel/                            # espacio del estudiante y panel de la ONG (una vista por seccion)
 │   └── admin/                            # modulos del panel admin: dashboard, usuarios,
 │                                         # organizaciones, oportunidades, reportes, tickets,
 │                                         # anuncios, analiticas, configuracion, busqueda y auditoria
@@ -139,29 +140,29 @@ Los mensajes de validacion estan en espanol en `lang/es/validation.php` (`APP_LO
 
 ## Panel del voluntario
 
-Ruta: `/home` (rol `voluntario`), vista `dashboard/voluntario.blade.php`, estilo `dashboard-student`.
+Rutas bajo `/mi-espacio` (rol `voluntario`), cada seccion con su propia URL y vista en `resources/views/panel/voluntario/`:
 
-Pestanas (navegacion por `data-section` / `data-panel` en `public/js/dashboard/navegacion.js`):
-
-1. Mi resumen: metricas del voluntario, matches recomendados y completitud de perfil.
-2. Skills Passport: mapa de fortalezas (grafico radar) y deslizadores para ajustar habilidades.
-3. Descubrir matches: tarjetas tipo swiper de oportunidades con porcentaje de encaje; botones de descarte y postulacion.
-4. Postulaciones: tabla de seguimiento con estados (en revision, aceptado, en curso).
-5. Mi impacto: horas acumuladas, insignias, constancias digitales y valoracion de experiencias.
-6. Mensajes: chat con organizaciones (lista de conversaciones, hilos y contexto del proyecto compartido).
+| Ruta | Funcionalidad |
+| --- | --- |
+| `/home` o `/mi-espacio` | Mi resumen: metricas reales, matches recomendados y completitud de perfil. |
+| `/mi-espacio/skills` | Skills Passport: grafico radar y deslizadores; guarda en `users.skills`. |
+| `/mi-espacio/matches` | Baraja de oportunidades con encaje; deslizar a la derecha (o el boton) crea la postulacion real. Solo se mueve en horizontal. |
+| `/mi-espacio/postulaciones` | Seguimiento real de postulaciones con estados (en revision, en entrevista, aceptado, rechazado). |
+| `/mi-espacio/impacto` | Horas estimadas a partir de los proyectos aceptados, insignias y constancias. |
+| `/mi-espacio/mensajes` | Chat con organizaciones (prototipo en memoria). |
 
 ## Panel de la organizacion
 
-Ruta: `/dashboard-organizacion` (rol `organizacion`, protegido con `role:organizacion`), vista `dashboard/organizacion.blade.php`.
+Rutas bajo `/panel-ong` (rol `organizacion`), una vista por seccion en `resources/views/panel/organizacion/`:
 
-Pestanas:
-
-1. Resumen: metricas de la ONG, actividad de proyectos y atajo para buscar talento.
-2. Oportunidades: gestion de proyectos publicados (crear, editar estado).
-3. Buscar talento: busqueda de voluntarios por habilidad.
-4. Candidatos (Match Inbox): bandeja de postulaciones recibidas en vista lista o kanban, con etapas (por revisar, en entrevista, aceptado, rechazado), rechazo con mensaje automatico, proyecto al que postula cada candidato y notas internas del equipo.
-5. Metricas: impacto agregado con selector de rango de fechas (ultimo mes, trimestre, ano, historico), grafico de evolucion de horas, exportacion del reporte a CSV/PDF y evaluacion de voluntarios con proyecto asociado.
-6. Mensajes: chat directo con voluntarios postulados, plantillas de respuesta rapida, agendado de reunion (Google Meet o invitacion de calendario), gestor de archivos compartidos y ficha del proyecto compartido.
+| Ruta | Funcionalidad |
+| --- | --- |
+| `/dashboard-organizacion` o `/panel-ong` | Resumen con metricas reales, tareas pendientes y proximos hitos. |
+| `/panel-ong/oportunidades` | Oportunidades reales de la ONG, filtros por estado, buscador y formulario para publicar un reto nuevo. |
+| `/panel-ong/talento` | Busqueda de estudiantes por carrera, habilidad y disponibilidad, con favoritos. |
+| `/panel-ong/candidatos` | Match Inbox conectado a `postulaciones`: aceptar, rechazar, mover etapas en lista o kanban y guardar notas internas. |
+| `/panel-ong/metricas` | Impacto agregado, horas, areas, exportacion CSV/PDF y evaluacion de voluntarios. |
+| `/panel-ong/mensajes` | Chat con voluntarios, plantillas, agendado y archivos compartidos (prototipo en memoria). |
 
 ## Panel del administrador
 
@@ -197,8 +198,10 @@ secciones viven bajo el prefijo `/admin` y comparten la plantilla
 | Perfil y skills del voluntario (`/perfil`, `/perfil/skills`) | Funciona (persiste en BD) |
 | Politica de privacidad y consentimiento en el registro | Funciona (pagina estatica) |
 | Catalogo y fichas de oportunidades (`/oportunidades`, `/detalle-oportunidad/{slug}`) | Funciona: lee la tabla real `oportunidades` sembrada por `OportunidadSeeder`; si la BD esta vacia usa el catalogo de respaldo en `app/Support/OportunidadesDemo.php` |
-| Postularse a una oportunidad desde la ficha | Funciona (persiste en `postulaciones`, una sola postulacion por voluntario y oportunidad) |
-| Match Inbox (etapas, rechazo, notas) y metricas exportables de la ONG | Prototipo: UI funcional en el navegador con persistencia en `localStorage`, sin backend |
+| Postularse desde la ficha o deslizando el match a la derecha | Funciona (persiste en `postulaciones`, una sola postulacion por voluntario y oportunidad) |
+| Panel del estudiante: resumen, Skills Passport, matches, postulaciones e impacto | Funciona con datos reales de la cuenta |
+| Panel de la ONG: oportunidades, talento, candidatos y publicacion de retos | Funciona con datos reales de la organizacion |
+| Match Inbox (aceptar, rechazar, mover etapas y notas internas) | Funciona (persiste en `postulaciones`; solo la ONG duena puede modificarlo) |
 | Chats de voluntario y ONG | Prototipo: los mensajes viven solo en la sesion de la pagina |
 | Verificacion de ONG, suspension/reactivacion de cuentas, cambio de rol, reportes, tickets, anuncios y export CSV | Funciona (persiste en BD y queda en la bitacora) |
 | Analiticas del admin y dashboard maestro | Funciona: se calculan sobre las tablas reales, sin datos fijos |
@@ -214,7 +217,7 @@ composer install
 cp .env.example .env      # configurar la base de datos en .env (ver abajo)
 php artisan key:generate
 php artisan migrate       # crea las tablas
-php artisan db:seed       # crea el admin, el catalogo demo y datos de moderacion/soporte
+php artisan db:seed       # crea el admin, el catalogo demo, la comunidad y datos de moderacion
 php artisan serve
 ```
 
@@ -224,6 +227,13 @@ Base de datos:
 - Para MySQL: crea una base vacia (`CREATE DATABASE voluntmatch;`) y define en `.env` las variables `DB_CONNECTION=mysql`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME` y `DB_PASSWORD`. `APP_LOCALE=es` ya viene configurado.
 - Define en `.env` las credenciales del admin antes del `db:seed`: `ADMIN_EMAIL` y `ADMIN_PASSWORD` (una contrasenia larga y unica; si la dejas vacia, el seeder genera una aleatoria y la muestra por consola una sola vez).
 
+### Cuentas demo
+
+`ComunidadDemoSeeder` crea 6 ONG y 14 estudiantes. Todas estas cuentas usan la contrasenia `password`; cambiala o no las uses fuera de desarrollo:
+
+- ONG: `manos@voluntmatch.test`, `verde@voluntmatch.test`, `codigo@voluntmatch.test`, `casa@voluntmatch.test`, `salud@voluntmatch.test`, `cultura@voluntmatch.test`
+- Estudiantes: `sofia@voluntmatch.test`, `alvaro@voluntmatch.test`, `nora@voluntmatch.test`, `leo@voluntmatch.test`, ... (mismo patron de correo)
+
 ## Pruebas
 
 ```bash
@@ -231,12 +241,12 @@ composer install
 php artisan test          # o: ./vendor/bin/phpunit
 ```
 
-La suite cubre: registro por rol (incluido el intento de colar `role=admin`), registro de ONG con datos minimos y ventana publica, bolsa de errores independiente para ONG, validacion de DNI y RUC con digito verificador, acceso a los paneles por rol, limitador de intentos del login, el seeder del admin, el seeder de oportunidades, la postulacion persistente a oportunidades y el panel de administracion (suspension, roles, verificacion de ONG, curaduria, reportes, soporte, anuncios, configuracion y exportacion CSV).
+La suite cubre: registro por rol (incluido el intento de colar `role=admin`), registro de ONG con datos minimos y ventana publica, bolsa de errores independiente para ONG, validacion de DNI y RUC con digito verificador, acceso a los paneles por rol, limitador de intentos del login, los seeders de admin, oportunidades y comunidad, la postulacion persistente (desde ficha y desde la baraja), las paginas de los paneles de estudiante y ONG, la gestion real del Match Inbox y el panel de administracion (suspension, roles, verificacion de ONG, curaduria, reportes, soporte, anuncios, configuracion y exportacion CSV).
 
 ## Roadmap
 
-- Conectar el Match Inbox de la ONG y los estados de postulacion del voluntario a la tabla `postulaciones`.
 - Backend para el rechazo con correo real y las metricas exportables.
+- Edicion y archivado de oportunidades desde el panel de la ONG.
 - Persistencia de mensajes con eventos y notificaciones.
 - Adjuntar documentos de verificacion de ONG y descargarlos desde el panel.
 - Que el motor de recomendaciones consuma los pesos guardados en `configuraciones`.
