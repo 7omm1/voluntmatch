@@ -20,6 +20,7 @@ class OportunidadesDemo
         return [
             [
                 'id' => 1,
+                'slug' => 'rediseno-web-accesible',
                 'title' => 'Rediseño web accesible',
                 'org' => 'Fundación Horizonte',
                 'cause' => 'Inclusión',
@@ -38,6 +39,7 @@ class OportunidadesDemo
             ],
             [
                 'id' => 2,
+                'slug' => 'mentoria-de-matematicas',
                 'title' => 'Mentoría de matemáticas',
                 'org' => 'Aula Abierta',
                 'cause' => 'Educación',
@@ -56,6 +58,7 @@ class OportunidadesDemo
             ],
             [
                 'id' => 3,
+                'slug' => 'campana-de-reforestacion',
                 'title' => 'Campaña de reforestación',
                 'org' => 'Raíz Colectiva',
                 'cause' => 'Medio ambiente',

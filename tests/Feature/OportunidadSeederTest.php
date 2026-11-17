@@ -22,6 +22,7 @@ class OportunidadSeederTest extends TestCase
 
         $primera = Oportunidad::first();
         $this->assertSame('Rediseño web accesible', $primera->titulo);
+        $this->assertSame('rediseno-web-accesible', $primera->slug);
         $this->assertSame('Fundación Horizonte', $primera->organizacion->nombre);
         $this->assertSame(92, $primera->afinidad);
         $this->assertCount(3, $primera->porque);
@@ -55,6 +56,7 @@ class OportunidadSeederTest extends TestCase
 
         $titulos = array_column(OportunidadController::demo(), 'title');
         $this->assertContains('Rediseño web accesible', $titulos);
+        $this->assertContains('rediseno-web-accesible', array_column(OportunidadController::demo(), 'slug'));
 
         // Cambiamos la fila en BD: el listado debe reflejar la BD, no el array estático.
         Oportunidad::where('titulo', 'Rediseño web accesible')->update(['titulo' => 'Título actualizado en BD']);

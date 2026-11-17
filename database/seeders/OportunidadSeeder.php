@@ -38,6 +38,7 @@ class OportunidadSeeder extends Seeder
                 ['titulo' => $demo['title']],
                 [
                     'organizacion_id' => $organizacion->id,
+                    'slug' => $demo['slug'],
                     'causa' => $demo['cause'],
                     'habilidad' => $demo['skill'],
                     'dedicacion' => $demo['time'],

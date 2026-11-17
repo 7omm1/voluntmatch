@@ -22,7 +22,7 @@ if (projectModal) {
             const el = projectField(name);
             if (el && value) el.textContent = value;
         });
-        if (projectLink && data.id) projectLink.href = `${projectBase}${data.id}`;
+        if (projectLink && data.slug) projectLink.href = `${projectBase}${data.slug}`;
         projectModal.hidden = false;
         projectModal.querySelector('.project-detail-modal')?.scrollTo({ top: 0 });
     };

@@ -34,7 +34,7 @@ Route::post('/contacto', function (Request $request) {
 })->name('contacto.enviar');
 
 Route::get('/oportunidades', [OportunidadController::class, 'index'])->name('oportunidades');
-Route::get('/detalle-oportunidad/{id?}', [OportunidadController::class, 'show'])->name('detalle-oportunidad');
+Route::get('/detalle-oportunidad/{oportunidad:slug}', [OportunidadController::class, 'show'])->name('detalle-oportunidad');
 
 // Rutas de Autenticación (Solo Invitados)
 Route::middleware('guest')->group(function () {

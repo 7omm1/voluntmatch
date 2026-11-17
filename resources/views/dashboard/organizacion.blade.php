@@ -153,7 +153,7 @@
                             <button type="button" class="project-list-button" data-project-open
                                 data-title="{{ $op['title'] }}" data-org="{{ $op['org'] }}"
                                 data-cause="{{ $op['cause'] }}" data-skill="{{ $op['skill'] }}"
-                                data-time="{{ $op['time'] }}" data-id="{{ $loop->iteration }}">
+                                data-time="{{ $op['time'] }}" data-slug="{{ $op['slug'] }}">
                                 <span class="list-icon"><x-icon name="heart" /></span>
                                 <span>
                                     <b>{{ $op['title'] }}</b>
@@ -274,7 +274,7 @@
                             <button type="button" data-project-open data-title="{{ $proyecto['title'] }}"
                                 data-org="{{ $user->name }}" data-cause="{{ $proyecto['cause'] }}"
                                 data-skill="{{ $proyecto['skill'] }}" data-time="{{ $proyecto['time'] }}"
-                                data-id="{{ $proyecto['modal_id'] }}">
+                                data-slug="{{ $proyecto['slug'] }}">
                                 Gestionar <x-icon name="arrow" />
                             </button>
                         </div>
@@ -645,7 +645,7 @@
                                 <b>María González</b>
                                 <small><i></i> En línea · Proyecto Diseño</small>
                             </div>
-                            <a href="{{ route('detalle-oportunidad', ['id' => 1]) }}">Ver proyecto</a>
+                            <a href="{{ route('detalle-oportunidad', ['oportunidad' => 'rediseno-web-accesible']) }}">Ver proyecto</a>
                         </header>
                         <div class="chat-messages" data-chat>
                             <p>HOY</p>
@@ -718,7 +718,7 @@
                                 </button>
                             @endforeach
                         </div>
-                        <a class="chat-context-link" href="{{ route('detalle-oportunidad', ['id' => 1]) }}">
+                        <a class="chat-context-link" href="{{ route('detalle-oportunidad', ['oportunidad' => 'rediseno-web-accesible']) }}">
                             Abrir ficha <x-icon name="arrow" :size="11" />
                         </a>
                     </aside>
@@ -767,7 +767,7 @@
                         </button>
                     </div>
                     <a class="project-modal-link" data-project-link
-                        href="{{ route('detalle-oportunidad', ['id' => 1]) }}">
+                        href="{{ route('detalle-oportunidad', ['oportunidad' => 'rediseno-web-accesible']) }}">
                         Ver ficha pública <x-icon name="arrow" />
                     </a>
                 </div>

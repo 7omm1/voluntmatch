@@ -69,7 +69,7 @@ voluntmatch/
 │   ├── modules/auth/                     # login, registro-voluntario, registro-organizacion
 │   └── dashboard/                        # paneles privados: voluntario, organizacion, admin
 ├── routes/web.php                        # todas las rutas de la aplicacion
-├── tests/                                # PHPUnit: registro, roles, throttle y RUC
+├── tests/                                # PHPUnit: registro, roles, throttle, RUC, slug y postulaciones
 └── composer.json
 ```
 
@@ -89,6 +89,7 @@ La cuenta administradora **no** existe de fabrica y sus credenciales nunca viven
 
 - **Roles en el servidor**: cada formulario de registro envia a su propia ruta (`POST /registro-voluntario` y `POST /registro-organizacion`) y el rol lo fija el controlador; cualquier campo `role` del formulario se ignora.
 - **Middleware de acceso**: `role:organizacion` y `role:admin` protegen los paneles en `routes/web.php`.
+- **Fichas no enumerables**: `/detalle-oportunidad/{slug}` resuelve por slug mediante route model binding; los ids secuenciales ya no son URLs validas.
 - **Login con limite de intentos**: maximo 5 intentos por minuto por correo + IP (RateLimiter `login`); la sesion se regenera al autenticar y se invalida al salir.
 - **RUC verificado**: ademas del formato (11 digitos, prefijo 10/15/17/20), se valida el digito verificador con el algoritmo modulo 11 de SUNAT (`Peru::rucValido`).
 - **Datos personales**: se trata de datos regulados por la Ley 29733 del Peru. Existe una [politica de privacidad](/politica-privacidad) enlazada desde el registro y el footer, con consentimiento explicito via checkbox. La exportacion de registros con datos personales esta reservada a la administracion.
@@ -107,7 +108,7 @@ Los mensajes de validacion estan en espanol en `lang/es/validation.php` (`APP_LO
 
 - `/` (landing, `index.blade.php`): presenta la propuesta de valor, las estadisticas, el proceso en tres pasos, causas destacadas, testimonios y FAQ.
 - `/oportunidades` (`oportunidades.blade.php`): listado filtrable de oportunidades de voluntariado.
-- `/detalle-oportunidad/{id}` (`detalle-oportunidad.blade.php`): ficha completa de una oportunidad con postulacion.
+- `/detalle-oportunidad/{slug}` (`detalle-oportunidad.blade.php`): ficha completa de una oportunidad con postulacion. La ruta usa route model binding por `slug`, no el id secuencial.
 - `/contacto` (`contacto.blade.php`): formulario de contacto con validacion.
 - `/politica-privacidad` (`pages/privacidad.blade.php`): tratamiento de datos personales (Ley 29733).
 - `/login`, `/registro-voluntario`, `/registro-organizacion` (`modules/auth/*`): acceso y altas. Cada formulario envia a su propia ruta (`POST /registro-voluntario` y `POST /registro-organizacion`) y el rol lo fija el controlador segun la ruta.
@@ -160,7 +161,7 @@ Pestanas:
 | Paneles privados con middleware de rol | Funciona |
 | Perfil y skills del voluntario (`/perfil`, `/perfil/skills`) | Funciona (persiste en BD) |
 | Politica de privacidad y consentimiento en el registro | Funciona (pagina estatica) |
-| Catalogo y fichas de oportunidades (`/oportunidades`, `/detalle-oportunidad/{id}`) | Funciona: lee la tabla real `oportunidades` sembrada por `OportunidadSeeder`; si la BD esta vacia usa el catalogo de respaldo en `app/Support/OportunidadesDemo.php` |
+| Catalogo y fichas de oportunidades (`/oportunidades`, `/detalle-oportunidad/{slug}`) | Funciona: lee la tabla real `oportunidades` sembrada por `OportunidadSeeder`; si la BD esta vacia usa el catalogo de respaldo en `app/Support/OportunidadesDemo.php` |
 | Postularse a una oportunidad desde la ficha | Funciona (persiste en `postulaciones`, una sola postulacion por voluntario y oportunidad) |
 | Match Inbox (etapas, rechazo, notas) y metricas exportables de la ONG | Prototipo: UI funcional en el navegador con persistencia en `localStorage`, sin backend |
 | Chats de voluntario y ONG | Prototipo: los mensajes viven solo en la sesion de la pagina |
@@ -202,7 +203,7 @@ La suite cubre: registro por rol (incluido el intento de colar `role=admin`), va
 - Backend para el rechazo con correo real y las metricas exportables.
 - Persistencia de mensajes con eventos y notificaciones.
 - Verificacion real de ONG con documentos y estados.
-- URLs con slug para las fichas publicas y paginacion.
+- Paginacion en el catalogo publico de oportunidades.
 
 ## Contribuir
 

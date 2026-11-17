@@ -126,7 +126,7 @@
                             </button>
                         </div>
                         @foreach ($oportunidades as $op)
-                            <a class="project-list-button" href="{{ route('detalle-oportunidad', ['id' => $loop->iteration]) }}">
+                            <a class="project-list-button" href="{{ route('detalle-oportunidad', ['oportunidad' => $op['slug']]) }}">
                                 <span class="list-icon"><x-icon name="heart" /></span>
                                 <span>
                                     <b>{{ $op['title'] }}</b>
@@ -227,7 +227,7 @@
                                             <span>Remoto</span>
                                             <span>Certificado</span>
                                         </div>
-                                        <a class="text-project-link" href="{{ route('detalle-oportunidad', ['id' => $i + 1]) }}">
+                                        <a class="text-project-link" href="{{ route('detalle-oportunidad', ['oportunidad' => $op['slug']]) }}">
                                             Ver ficha completa <x-icon name="arrow" />
                                         </a>
                                     </div>
@@ -279,7 +279,7 @@
                         </div>
                         <span data-applications-count>3 activas</span>
                     </div>
-                    <a class="application-row" href="{{ route('detalle-oportunidad', ['id' => 2]) }}">
+                    <a class="application-row" href="{{ route('detalle-oportunidad', ['oportunidad' => 'mentoria-de-matematicas']) }}">
                         <span class="list-icon"><x-icon name="heart" /></span>
                         <span>
                             <b>Mentoría de matemáticas</b>
@@ -289,7 +289,7 @@
                         <em>Inicio 14 mayo</em>
                         <x-icon name="arrow" />
                     </a>
-                    <a class="application-row" href="{{ route('detalle-oportunidad', ['id' => 3]) }}">
+                    <a class="application-row" href="{{ route('detalle-oportunidad', ['oportunidad' => 'campana-de-reforestacion']) }}">
                         <span class="list-icon"><x-icon name="heart" /></span>
                         <span>
                             <b>Campaña de reforestación</b>
@@ -299,7 +299,7 @@
                         <em>Comienza pronto</em>
                         <x-icon name="arrow" />
                     </a>
-                    <a class="application-row" href="{{ route('detalle-oportunidad', ['id' => 1]) }}">
+                    <a class="application-row" href="{{ route('detalle-oportunidad', ['oportunidad' => 'rediseno-web-accesible']) }}">
                         <span class="list-icon"><x-icon name="heart" /></span>
                         <span>
                             <b>Identidad para Casa Joven</b>
@@ -421,7 +421,7 @@
                                 <b>Aula Abierta</b>
                                 <small><i></i> En línea · Proyecto Mentoría</small>
                             </div>
-                            <a href="{{ route('detalle-oportunidad', ['id' => 2]) }}">Ver proyecto</a>
+                            <a href="{{ route('detalle-oportunidad', ['oportunidad' => 'mentoria-de-matematicas']) }}">Ver proyecto</a>
                         </header>
                         <div class="chat-messages" data-chat>
                             <p>HOY</p>
@@ -456,7 +456,7 @@
                             <span>Entregables</span>
                             <b>2 de 4 listos</b>
                         </div>
-                        <a href="{{ route('detalle-oportunidad', ['id' => 2]) }}">
+                        <a href="{{ route('detalle-oportunidad', ['oportunidad' => 'mentoria-de-matematicas']) }}">
                             Abrir ficha <x-icon name="arrow" />
                         </a>
                     </aside>

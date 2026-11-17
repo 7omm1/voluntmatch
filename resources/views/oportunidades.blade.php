@@ -68,7 +68,7 @@
                             <p>{{ $op['org'] }}</p>
                             <div>
                                 <span>{{ $op['time'] }}</span>
-                                <a href="{{ route('detalle-oportunidad', ['id' => $i + 1]) }}">
+                                <a href="{{ route('detalle-oportunidad', ['oportunidad' => $op['slug']]) }}">
                                     Ver proyecto <x-icon name="arrow" />
                                 </a>
                             </div>

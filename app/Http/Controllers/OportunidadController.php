@@ -36,6 +36,7 @@ class OportunidadController extends Controller
     {
         return [
             'id' => $oportunidad->id,
+            'slug' => $oportunidad->slug,
             'title' => $oportunidad->titulo,
             'org' => $oportunidad->organizacion?->nombre ?? 'Organización verificada',
             'cause' => $oportunidad->causa,
@@ -64,16 +65,10 @@ class OportunidadController extends Controller
         ]);
     }
 
-    public function show(?int $id = null)
+    public function show(Oportunidad $oportunidad)
     {
-        $oportunidades = self::demo();
-
-        $op = $id !== null
-            ? (collect($oportunidades)->firstWhere('id', $id) ?? $oportunidades[0])
-            : $oportunidades[0];
-
         return view('detalle-oportunidad', [
-            'op' => $op,
+            'op' => self::mapear($oportunidad),
         ]);
     }
 }
