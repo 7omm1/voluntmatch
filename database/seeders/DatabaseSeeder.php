@@ -16,5 +16,8 @@ class DatabaseSeeder extends Seeder
     {
         // Cuenta administradora: credenciales desde .env (ADMIN_EMAIL / ADMIN_PASSWORD).
         $this->call(AdminSeeder::class);
+
+        // Catalogo de oportunidades demo en la tabla real `oportunidades`.
+        $this->call(OportunidadSeeder::class);
     }
 }

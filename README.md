@@ -25,25 +25,29 @@ voluntmatch/
 │   │   │   ├── AuthController.php        # registro (rol fijado por ruta), login y logout
 │   │   │   ├── DashboardController.php   # paneles de organizacion y administrador
 │   │   │   ├── OportunidadController.php # listado y fichas de oportunidades
+│   │   │   ├── PostulacionController.php # POST /postular: persiste la postulacion del voluntario
 │   │   │   └── PerfilController.php      # actualizacion de perfil y skills del voluntario
 │   │   └── Middleware/
 │   │       └── EnsureRole.php            # middleware 'role:admin', 'role:organizacion', etc.
 │   ├── Models/
 │   │   ├── User.php                      # usuario con columna role: voluntario | organizacion | admin
-│   │   ├── Organizacion.php
-│   │   ├── Oportunidad.php
-│   │   └── Postulacion.php
+│   │   ├── Organizacion.php              # tabla `organizaciones`
+│   │   ├── Oportunidad.php               # tabla `oportunidades`
+│   │   └── Postulacion.php               # tabla `postulaciones` (una por voluntario y oportunidad)
 │   ├── Providers/AppServiceProvider.php  # limitador de intentos del login
 │   ├── Support/
 │   │   ├── Peru.php                      # catalogos de Peru y validacion del RUC (modulo 11)
+│   │   ├── OportunidadesDemo.php         # catalogo demo de oportunidades (sembrado y respaldo)
 │   │   ├── ChatDemo.php                  # conversaciones de demostracion del panel
 │   │   └── PerfilVoluntario.php          # datos de demostracion del perfil
 │   └── View/Components/Icon.php          # componente <x-icon name="..." /> (iconos SVG inline)
 ├── database/
-│   ├── migrations/                       # users (+ role), cache, jobs, organizacions, oportunidads, postulacions
+│   ├── migrations/                       # users (+ role), cache, jobs, organizaciones, oportunidades, postulaciones
+│   ├── factories/                        # UserFactory, OrganizacionFactory, OportunidadFactory
 │   └── seeders/
 │       ├── DatabaseSeeder.php
-│       └── AdminSeeder.php               # crea el admin con ADMIN_EMAIL / ADMIN_PASSWORD del .env
+│       ├── AdminSeeder.php               # crea el admin con ADMIN_EMAIL / ADMIN_PASSWORD del .env
+│       └── OportunidadSeeder.php         # siembra el catalogo demo en la tabla real `oportunidades`
 ├── lang/es/                              # mensajes de validacion en espanol
 ├── public/
 │   ├── css/app.css                       # todo el estilo del sitio y de los dashboards (CSS plano)
@@ -151,7 +155,8 @@ Pestanas:
 | Paneles privados con middleware de rol | Funciona |
 | Perfil y skills del voluntario (`/perfil`, `/perfil/skills`) | Funciona (persiste en BD) |
 | Politica de privacidad y consentimiento en el registro | Funciona (pagina estatica) |
-| Catalogo y fichas de oportunidades | Funciona con datos demo en memoria (`OportunidadController::demo()`); la tabla `oportunidads` existe pero aun no alimenta la interfaz |
+| Catalogo y fichas de oportunidades (`/oportunidades`, `/detalle-oportunidad/{id}`) | Funciona: lee la tabla real `oportunidades` sembrada por `OportunidadSeeder`; si la BD esta vacia usa el catalogo de respaldo en `app/Support/OportunidadesDemo.php` |
+| Postularse a una oportunidad desde la ficha | Funciona (persiste en `postulaciones`, una sola postulacion por voluntario y oportunidad) |
 | Match Inbox (etapas, rechazo, notas) y metricas exportables de la ONG | Prototipo: UI funcional en el navegador con persistencia en `localStorage`, sin backend |
 | Chats de voluntario y ONG | Prototipo: los mensajes viven solo en la sesion de la pagina |
 | Verificacion de ONG, moderacion de usuarios y export del admin | Prototipo: UI sin acciones reales |
@@ -167,7 +172,7 @@ composer install
 cp .env.example .env      # configurar la base de datos en .env (ver abajo)
 php artisan key:generate
 php artisan migrate       # crea las tablas
-php artisan db:seed       # crea la cuenta admin leyendo ADMIN_EMAIL y ADMIN_PASSWORD del .env
+php artisan db:seed       # crea la cuenta admin y siembra el catalogo de oportunidades demo
 php artisan serve
 ```
 
@@ -184,12 +189,12 @@ composer install
 php artisan test          # o: ./vendor/bin/phpunit
 ```
 
-La suite cubre: registro por rol (incluido el intento de colar `role=admin`), validacion de DNI y RUC con digito verificador, acceso a los paneles por rol, limitador de intentos del login y el seeder del admin.
+La suite cubre: registro por rol (incluido el intento de colar `role=admin`), validacion de DNI y RUC con digito verificador, acceso a los paneles por rol, limitador de intentos del login, el seeder del admin, el seeder de oportunidades y la postulacion persistente a oportunidades.
 
 ## Roadmap
 
-- Migrar el catalogo de oportunidades y las postulaciones a las tablas reales (con seeder y factories).
-- Backend para el Match Inbox (etapas, notas, rechazo con correo real) y las metricas.
+- Conectar el Match Inbox de la ONG y los estados de postulacion del voluntario a la tabla `postulaciones`.
+- Backend para el rechazo con correo real y las metricas exportables.
 - Persistencia de mensajes con eventos y notificaciones.
 - Verificacion real de ONG con documentos y estados.
 - URLs con slug para las fichas publicas y paginacion.

@@ -52,10 +52,35 @@
                     <li><x-icon name="check" /> Certificado digital y valoración</li>
                     <li><x-icon name="check" /> Acompañamiento de la organización</li>
                 </ul>
+                @if (session('success'))
+                    <div class="form-success" role="status">{{ session('success') }}</div>
+                @endif
+
+                @if ($errors->any())
+                    <div class="form-error form-errors" role="alert">
+                        <b>No pudimos registrar tu postulación:</b>
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 @auth
-                    <a class="jelly-button wide" href="{{ route('home') }}">
-                        Postularme desde mi espacio <x-icon name="arrow" />
-                    </a>
+                    @if (auth()->user()->role === 'voluntario')
+                        <form method="POST" action="{{ route('postular') }}">
+                            @csrf
+                            <input type="hidden" name="oportunidad_id" value="{{ $op['id'] ?? 0 }}" />
+                            <button type="submit" class="jelly-button wide">
+                                Postularme a este reto <x-icon name="arrow" />
+                            </button>
+                        </form>
+                    @else
+                        <a class="jelly-button wide" href="{{ route('home') }}">
+                            Gestionar desde mi panel <x-icon name="arrow" />
+                        </a>
+                    @endif
                 @else
                     <a class="jelly-button wide" href="{{ route('registro-voluntario') }}">
                         Postularme a este reto <x-icon name="arrow" />

@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OportunidadController;
 use App\Http\Controllers\PerfilController;
+use App\Http\Controllers\PostulacionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -53,6 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard-organizacion', [DashboardController::class, 'index'])->middleware('role:organizacion')->name('dashboard-organizacion');
     Route::get('/dashboard-admin', [DashboardController::class, 'admin'])->middleware('role:admin')->name('dashboard-admin');
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::post('/postular', [PostulacionController::class, 'guardar'])->middleware('role:voluntario')->name('postular');
     Route::post('/perfil', [PerfilController::class, 'actualizar'])->name('perfil.actualizar');
     Route::post('/perfil/skills', [PerfilController::class, 'skills'])->name('perfil.skills');
 });
