@@ -6,6 +6,20 @@ El proyecto esta construido sobre Laravel (aplicacion monolitica con Blade como 
 
 ![Pagina principal](assets/vmatch.png)
 
+## Capturas
+
+### Panel del voluntario
+
+![Panel del voluntario](assets/screenshots/voluntario.png)
+
+### Panel de la organizacion
+
+![Panel de la organizacion](assets/screenshots/organizacion.png)
+
+### Panel del administrador
+
+![Panel del administrador](assets/screenshots/admin.png)
+
 ## Stack
 
 - Laravel 11 (PHP >= 8.2) con Blade templates.
