@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Anuncio;
 
 class DashboardController extends Controller
 {
@@ -12,6 +12,11 @@ class DashboardController extends Controller
 
         return view('dashboard/organizacion', [
             'oportunidades' => OportunidadController::demo(),
+            'anuncios' => Anuncio::activos()
+                ->whereIn('audiencia', ['todos', 'organizacion'])
+                ->latest()
+                ->limit(3)
+                ->get(),
             // TODO: reemplazar por consultas reales cuando existan
             // las tablas de entregables, entrevistas y calendario.
             'pendientes' => [
@@ -178,15 +183,6 @@ class DashboardController extends Controller
                     'stage' => 'por-revisar',
                 ],
             ],
-        ]);
-    }
-
-    public function admin()
-    {
-        // El acceso esta protegido por el middleware 'role:admin' en routes/web.php.
-
-        return view('dashboard/admin', [
-            'oportunidades' => OportunidadController::demo(),
         ]);
     }
 }

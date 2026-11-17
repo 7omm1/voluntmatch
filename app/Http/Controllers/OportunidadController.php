@@ -67,6 +67,10 @@ class OportunidadController extends Controller
 
     public function show(Oportunidad $oportunidad)
     {
+        if ($oportunidad->exists) {
+            $oportunidad->registrarVista();
+        }
+
         return view('detalle-oportunidad', [
             'op' => self::mapear($oportunidad),
         ]);

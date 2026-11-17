@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Anuncio;
 use App\Models\User;
 use App\Support\ChatDemo;
 use App\Support\Peru;
@@ -83,6 +84,18 @@ class AuthController extends Controller
         $user->role = $role;
         $user->city = $role === 'organizacion' ? ($datos['city'] ?? null) : null;
         $user->save();
+
+        // La cuenta de ONG nace con su ficha de organizacion pendiente de
+        // verificacion: el panel de administracion la revisa y aprueba.
+        if ($role === 'organizacion') {
+            $user->organizacion()->create([
+                'nombre' => $user->name,
+                'ruc' => $user->ruc,
+                'sector' => $user->sector,
+                'mision' => $user->mission,
+                'verificada' => false,
+            ]);
+        }
 
         return redirect()->route('login')->with(
             'success',
@@ -178,8 +191,17 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
+        // Una cuenta suspendida no puede volver a entrar aunque acierte
+        // la contrasenia: el bloqueo lo decide la administracion.
+        $cuenta = User::where('email', $credenciales['email'])->first();
+
+        if ($cuenta && $cuenta->estaBloqueado()) {
+            return back()->with('error', 'Tu cuenta está suspendida. Escríbenos desde la página de contacto para revisar tu caso.');
+        }
+
         if (Auth::attempt($credenciales)) {
             $request->session()->regenerate();
+            $request->user()->forceFill(['last_login_at' => now()])->save();
 
             return redirect()->route('home');
         }
@@ -206,6 +228,11 @@ class AuthController extends Controller
                 'oportunidades' => OportunidadController::demo(),
                 'conversaciones' => ChatDemo::conversaciones(),
                 'noLeidos' => ChatDemo::noLeidos(),
+                'anuncios' => Anuncio::activos()
+                    ->whereIn('audiencia', ['todos', 'voluntario'])
+                    ->latest()
+                    ->limit(3)
+                    ->get(),
             ]),
         };
     }
