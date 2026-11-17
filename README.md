@@ -58,12 +58,14 @@ voluntmatch/
 │   │   └── PerfilVoluntario.php          # datos de demostracion del perfil
 │   └── View/Components/Icon.php          # componente <x-icon name="..." /> (iconos SVG inline)
 ├── database/
-│   ├── migrations/                       # users (+ role), cache, jobs, organizaciones, oportunidades, postulaciones
+│   ├── migrations/                       # users, organizaciones, oportunidades, postulaciones,
+│   │                                     # reportes, tickets, anuncios, audit_logs y configuraciones
 │   ├── factories/                        # UserFactory, OrganizacionFactory, OportunidadFactory
 │   └── seeders/
 │       ├── DatabaseSeeder.php
 │       ├── AdminSeeder.php               # crea el admin con ADMIN_EMAIL / ADMIN_PASSWORD del .env
-│       └── OportunidadSeeder.php         # siembra el catalogo demo en la tabla real `oportunidades`
+│       ├── OportunidadSeeder.php         # siembra el catalogo demo en la tabla real `oportunidades`
+│       └── AdminDemoSeeder.php           # fichas de ONG, postulaciones, reportes, tickets y anuncios demo
 ├── lang/es/                              # mensajes de validacion en espanol
 ├── public/
 │   ├── css/app.css                       # todo el estilo del sitio y de los dashboards (CSS plano)
@@ -74,6 +76,7 @@ voluntmatch/
 │                                          # chat, talento, admin, proyectos ONG, inbox y metricas
 ├── resources/views/
 │   ├── layouts/base.blade.php            # plantilla base (head, tema claro/oscuro, scripts)
+│   ├── layouts/admin.blade.php           # shell del panel admin (sidebar, buscador, contadores)
 │   ├── partials/                         # header, footer, formulario-ong y registro-ong-modal
 │   ├── components/icon.blade.php         # markup del componente de iconos
 │   ├── index.blade.php                   # landing publica
@@ -82,7 +85,10 @@ voluntmatch/
 │   ├── contacto.blade.php                # formulario de contacto publico
 │   ├── pages/privacidad.blade.php        # politica de privacidad (Ley 29733)
 │   ├── modules/auth/                     # login, registro-voluntario, registro-organizacion
-│   └── dashboard/                        # paneles privados: voluntario, organizacion, admin
+│   ├── dashboard/                        # paneles privados: voluntario y organizacion
+│   └── admin/                            # modulos del panel admin: dashboard, usuarios,
+│                                         # organizaciones, oportunidades, reportes, tickets,
+│                                         # anuncios, analiticas, configuracion, busqueda y auditoria
 ├── routes/web.php                        # todas las rutas de la aplicacion
 ├── tests/                                # PHPUnit: registro, roles, throttle, RUC, slug y postulaciones
 └── composer.json
@@ -103,7 +109,8 @@ La cuenta administradora **no** existe de fabrica y sus credenciales nunca viven
 ## Seguridad
 
 - **Roles en el servidor**: cada formulario de registro envia a su propia ruta (`POST /registro-voluntario` y `POST /registro-organizacion`) y el rol lo fija el controlador; cualquier campo `role` del formulario se ignora.
-- **Middleware de acceso**: `role:organizacion` y `role:admin` protegen los paneles en `routes/web.php`.
+- **Middleware de acceso**: `role:organizacion` y `role:admin` protegen los paneles en `routes/web.php`; `EnsureNotBlocked` expulsa a las cuentas suspendidas en la siguiente peticion.
+- **Auditoria**: cada accion del panel (`suspender`, `verificar`, `destacar`, `resolver`, `responder`, `publicar`, etc.) se registra en `audit_logs` con administrador, entidad, detalle e IP.
 - **Fichas no enumerables**: `/detalle-oportunidad/{slug}` resuelve por slug mediante route model binding; los ids secuenciales ya no son URLs validas.
 - **Login con limite de intentos**: maximo 5 intentos por minuto por correo + IP (RateLimiter `login`); la sesion se regenera al autenticar y se invalida al salir.
 - **RUC verificado**: ademas del formato (11 digitos, prefijo 10/15/17/20), se valida el digito verificador con el algoritmo modulo 11 de SUNAT (`Peru::rucValido`).
@@ -158,16 +165,25 @@ Pestanas:
 
 ## Panel del administrador
 
-Ruta: `/dashboard-admin` (rol `admin`, protegido con `role:admin`), vista `dashboard/admin.blade.php`.
+Ruta principal: `/dashboard-admin` (rol `admin`, protegido con `role:admin`). Todas las
+secciones viven bajo el prefijo `/admin` y comparten la plantilla
+`resources/views/layouts/admin.blade.php`. Cada accion escribe en la bitacora
+`audit_logs` para poder auditar quien cambio que.
 
-Pestanas:
-
-1. Dashboard maestro: metricas globales del ecosistema (estudiantes activos, ONG verificadas, matches, horas), grafico de actividad semanal y alertas de tareas pendientes.
-2. Verificar ONG: revision de organizaciones pendientes con documentos fiscales; acciones de verificar o rechazar.
-3. Usuarios y reportes: moderacion de cuentas (revisar historial, bloquear, reactivar) y exportacion del registro.
-4. Analiticas: demanda de habilidades y distribucion por universidades y carreras.
-5. Algoritmo: pesos del motor de matching (afinidad de habilidades, horario, causa, geografia) ajustables con deslizadores.
-6. Soporte: cola de casos de soporte tecnico con prioridad.
+| Ruta | Funcionalidad |
+| --- | --- |
+| `/dashboard-admin` | Dashboard maestro con metricas reales (voluntarios, ONG, oportunidades, postulaciones, matches, compromiso semanal), altas de las ultimas 8 semanas, tareas pendientes y actividad reciente. |
+| `/admin/usuarios` | Busqueda por nombre/correo/DNI/RUC, filtros por rol y estado, ficha completa del usuario, suspension con motivo y reactivacion inmediata, cambio de rol, notas internas y exportacion CSV. |
+| `/admin/usuarios/{id}` | Ficha 360: datos de perfil, postulaciones, reportes recibidos, notas internas y alta de incidencias. |
+| `/admin/organizaciones` | Cola de verificacion de ONG con RUC, sector, mision, contacto y expediente; botones para verificar o rechazar con nota, y exportacion CSV. |
+| `/admin/oportunidades` | Curaduria del catalogo: publicar, pasar a borrador, archivar, destacar, eliminar y exportar; muestra postulaciones y vistas reales. |
+| `/admin/reportes` | Bandeja de moderacion: resolver o descartar reportes dejando constancia de la decision. |
+| `/admin/tickets` | Mesa de soporte: registrar casos, priorizar, responder, dejar en seguimiento y cerrar. |
+| `/admin/anuncios` | Comunicados para toda la comunidad, solo voluntarios o solo ONG; se muestran en los paneles de los usuarios. |
+| `/admin/analiticas` | Altas mensuales, causas y habilidades mas demandadas, regiones con mas voluntarios, estado de las postulaciones y tasa de aceptacion. |
+| `/admin/configuracion` | Pesos del algoritmo de matching y reglas de moderacion persistidas en `configuraciones`. |
+| `/admin/actividad` | Bitacora de auditoria con filtros por accion, entidad y administrador. |
+| `/admin/buscar?q=` | Busqueda global de cuentas, ONG, oportunidades, reportes y tickets. |
 
 ## Que funciona y que es prototipo
 
@@ -184,8 +200,9 @@ Pestanas:
 | Postularse a una oportunidad desde la ficha | Funciona (persiste en `postulaciones`, una sola postulacion por voluntario y oportunidad) |
 | Match Inbox (etapas, rechazo, notas) y metricas exportables de la ONG | Prototipo: UI funcional en el navegador con persistencia en `localStorage`, sin backend |
 | Chats de voluntario y ONG | Prototipo: los mensajes viven solo en la sesion de la pagina |
-| Verificacion de ONG, moderacion de usuarios y export del admin | Prototipo: UI sin acciones reales |
-| Motor de matching (pesos ajustables) | Prototipo: los deslizadores no recalculan nada |
+| Verificacion de ONG, suspension/reactivacion de cuentas, cambio de rol, reportes, tickets, anuncios y export CSV | Funciona (persiste en BD y queda en la bitacora) |
+| Analiticas del admin y dashboard maestro | Funciona: se calculan sobre las tablas reales, sin datos fijos |
+| Pesos del algoritmo de matching y reglas de moderacion | Funciona: se guardan en `configuraciones` (el motor de recomendacion aun no los consume) |
 | Notificaciones por correo, pagos, SMS | No implementado |
 
 ## Como correr el proyecto
@@ -197,7 +214,7 @@ composer install
 cp .env.example .env      # configurar la base de datos en .env (ver abajo)
 php artisan key:generate
 php artisan migrate       # crea las tablas
-php artisan db:seed       # crea la cuenta admin y siembra el catalogo de oportunidades demo
+php artisan db:seed       # crea el admin, el catalogo demo y datos de moderacion/soporte
 php artisan serve
 ```
 
@@ -214,14 +231,15 @@ composer install
 php artisan test          # o: ./vendor/bin/phpunit
 ```
 
-La suite cubre: registro por rol (incluido el intento de colar `role=admin`), registro de ONG con datos minimos y ventana publica, bolsa de errores independiente para ONG, validacion de DNI y RUC con digito verificador, acceso a los paneles por rol, limitador de intentos del login, el seeder del admin, el seeder de oportunidades y la postulacion persistente a oportunidades.
+La suite cubre: registro por rol (incluido el intento de colar `role=admin`), registro de ONG con datos minimos y ventana publica, bolsa de errores independiente para ONG, validacion de DNI y RUC con digito verificador, acceso a los paneles por rol, limitador de intentos del login, el seeder del admin, el seeder de oportunidades, la postulacion persistente a oportunidades y el panel de administracion (suspension, roles, verificacion de ONG, curaduria, reportes, soporte, anuncios, configuracion y exportacion CSV).
 
 ## Roadmap
 
 - Conectar el Match Inbox de la ONG y los estados de postulacion del voluntario a la tabla `postulaciones`.
 - Backend para el rechazo con correo real y las metricas exportables.
 - Persistencia de mensajes con eventos y notificaciones.
-- Verificacion real de ONG con documentos y estados.
+- Adjuntar documentos de verificacion de ONG y descargarlos desde el panel.
+- Que el motor de recomendaciones consuma los pesos guardados en `configuraciones`.
 - Paginacion en el catalogo publico de oportunidades.
 
 ## Contribuir
