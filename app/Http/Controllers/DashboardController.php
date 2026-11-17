@@ -129,6 +129,46 @@ class DashboardController extends Controller
                     'progress' => null,
                 ],
             ],
+            'talentos' => [
+                // TODO: reemplazar por User::where('role', 'voluntario') con
+                // cálculo de afinidad y disponibilidad desde el perfil.
+                [
+                    'name' => 'Sofía Martín',
+                    'career' => 'Diseño',
+                    'detail' => 'Diseño · 4º curso',
+                    'skills' => ['Figma', 'UI Kit', 'Trabajo en equipo'],
+                    'match' => 96,
+                    'img' => 47,
+                    'hours' => 8,
+                ],
+                [
+                    'name' => 'Álvaro Vega',
+                    'career' => 'Informática',
+                    'detail' => 'Informática · 3º curso',
+                    'skills' => ['React', 'Node.js', 'APIs REST'],
+                    'match' => 92,
+                    'img' => 12,
+                    'hours' => 10,
+                ],
+                [
+                    'name' => 'Nora Campos',
+                    'career' => 'Comunicación',
+                    'detail' => 'Comunicación · 4º curso',
+                    'skills' => ['Estrategia', 'Copywriting'],
+                    'match' => 89,
+                    'img' => 32,
+                    'hours' => 5,
+                ],
+                [
+                    'name' => 'Leo Santos',
+                    'career' => 'Estadística',
+                    'detail' => 'Estadística · 2º curso',
+                    'skills' => ['Python', 'SQL', 'Análisis de datos'],
+                    'match' => 87,
+                    'img' => 11,
+                    'hours' => 4,
+                ],
+            ],
         ]);
     }
 

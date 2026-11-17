@@ -284,31 +284,106 @@
             </div>
 
             {{-- TALENTO --}}
+            @php
+                $talentFiltros = [
+                    [
+                        'tipo' => 'career',
+                        'label' => 'Carrera',
+                        'pills' => [
+                            ['label' => 'Diseño', 'value' => 'Diseño'],
+                            ['label' => 'Informática', 'value' => 'Informática'],
+                            ['label' => 'Comunicación', 'value' => 'Comunicación'],
+                            ['label' => 'Estadística', 'value' => 'Estadística'],
+                        ],
+                    ],
+                    [
+                        'tipo' => 'skill',
+                        'label' => 'Habilidad',
+                        'pills' => [
+                            ['label' => 'Figma', 'value' => 'Figma'],
+                            ['label' => 'React', 'value' => 'React'],
+                            ['label' => 'Estrategia', 'value' => 'Estrategia'],
+                            ['label' => 'Python', 'value' => 'Python'],
+                        ],
+                    ],
+                    [
+                        'tipo' => 'hours',
+                        'label' => 'Disponibilidad',
+                        'pills' => [
+                            ['label' => '≤ 5 h/sem', 'value' => 'low'],
+                            ['label' => '6–10 h/sem', 'value' => 'mid'],
+                            ['label' => '+10 h/sem', 'value' => 'high'],
+                        ],
+                    ],
+                    [
+                        'tipo' => 'match',
+                        'label' => '% Match',
+                        'pills' => [
+                            ['label' => '90%+', 'value' => '90'],
+                            ['label' => '95%+', 'value' => '95'],
+                        ],
+                    ],
+                ];
+            @endphp
             <div data-panel="talent" data-heading="Buscar talento" hidden>
                 <div class="talent-search">
                     <x-icon name="users" />
                     <input type="text" data-talent-search placeholder="Buscar por habilidad, carrera o nombre..." />
-                    <button type="button">
-                        Filtros <x-icon name="chevron" />
+                </div>
+                <div class="talent-filters">
+                    @foreach ($talentFiltros as $grupo)
+                        <span class="talent-filter-label">{{ $grupo['label'] }}</span>
+                        @foreach ($grupo['pills'] as $pill)
+                            <button type="button" data-talent-filter="{{ $grupo['tipo'] }}"
+                                data-filter-value="{{ $pill['value'] }}">
+                                {{ $pill['label'] }}
+                            </button>
+                        @endforeach
+                    @endforeach
+                    <button type="button" data-talent-filter="fav">
+                        <x-icon name="star" :size="11" /> Favoritos <b data-fav-count>0</b>
                     </button>
                 </div>
                 <div class="talent-grid">
-                    @foreach ([['Sofía Martín', 'Diseño · 4º curso', 'Figma', 96, 47], ['Álvaro Vega', 'Informática · 3º curso', 'React', 92, 12], ['Nora Campos', 'Comunicación · 4º curso', 'Estrategia', 89, 32], ['Leo Santos', 'Estadística · 2º curso', 'Python', 87, 11]] as $person)
-                        <article class="talent-card" data-talent-card data-search="{{ strtolower($person[0] . ' ' . $person[1] . ' ' . $person[2]) }}">
-                            <span class="match-score">{{ $person[3] }}% match</span>
-                            <img src="https://i.pravatar.cc/160?img={{ $person[4] }}" alt="{{ $person[0] }}" />
-                            <h3>{{ $person[0] }}</h3>
-                            <p>{{ $person[1] }}</p>
-                            <div>
-                                <span>{{ $person[2] }}</span>
-                                <span>Trabajo en equipo</span>
-                            </div>
-                            <button type="button" data-toast-msg="Invitación enviada a {{ $person[0] }}">
-                                Invitar a proyecto <x-icon name="arrow" />
+                    @foreach ($talentos as $talento)
+                        <article class="talent-card" data-talent-card
+                            data-search="{{ strtolower($talento['name'] . ' ' . $talento['detail'] . ' ' . implode(' ', $talento['skills'])) }}"
+                            data-career="{{ $talento['career'] }}"
+                            data-skills="{{ strtolower(implode(' ', $talento['skills'])) }}"
+                            data-hours="{{ $talento['hours'] }}"
+                            data-match="{{ $talento['match'] }}">
+                            <button type="button" class="talent-save" data-talent-save
+                                aria-label="Guardar {{ $talento['name'] }} en favoritos" aria-pressed="false">
+                                <x-icon name="star" :size="13" />
                             </button>
+                            <span class="match-score">{{ $talento['match'] }}% match</span>
+                            <img src="https://i.pravatar.cc/160?img={{ $talento['img'] }}" alt="{{ $talento['name'] }}" />
+                            <h3>{{ $talento['name'] }}</h3>
+                            <p>{{ $talento['detail'] }}</p>
+                            <div>
+                                @foreach ($talento['skills'] as $skill)
+                                    <span>{{ $skill }}</span>
+                                @endforeach
+                            </div>
+                            <span class="talent-availability">
+                                <x-icon name="clock" :size="11" /> Disponible: {{ $talento['hours'] }} h/sem
+                            </span>
+                            <div class="talent-actions">
+                                <button type="button" class="talent-invite"
+                                    data-toast-msg="Invitación enviada a {{ $talento['name'] }}">
+                                    Invitar a proyecto <x-icon name="arrow" :size="12" />
+                                </button>
+                                <button type="button" class="talent-secondary"
+                                    data-toast-msg="Perfil de {{ $talento['name'] }} — portafolio y LinkedIn muy pronto">
+                                    Ver perfil
+                                </button>
+                            </div>
                         </article>
                     @endforeach
                 </div>
+                <p class="talent-empty" data-talent-empty hidden>
+                    No hay perfiles que coincidan con la búsqueda y los filtros activos.
+                </p>
             </div>
 
             {{-- CANDIDATOS --}}
@@ -321,15 +396,15 @@
                         </div>
                         <span>8 nuevos</span>
                     </div>
-                    @foreach ([['Sofía Martín', 'Diseño · 4º curso', 'Figma', 96, 47], ['Álvaro Vega', 'Informática · 3º curso', 'React', 92, 12], ['Nora Campos', 'Comunicación · 4º curso', 'Estrategia', 89, 32], ['Leo Santos', 'Estadística · 2º curso', 'Python', 87, 11]] as $person)
+                    @foreach ($talentos as $talento)
                         <div class="candidate-row">
-                            <img src="https://i.pravatar.cc/100?img={{ $person[4] }}" alt="" />
+                            <img src="https://i.pravatar.cc/100?img={{ $talento['img'] }}" alt="" />
                             <span>
-                                <b>{{ $person[0] }}</b>
-                                <small>{{ $person[1] }} · {{ $person[2] }}</small>
+                                <b>{{ $talento['name'] }}</b>
+                                <small>{{ $talento['detail'] }} · {{ $talento['skills'][0] }}</small>
                             </span>
-                            <em>{{ $person[3] }}% match</em>
-                            <button type="button" data-toast-msg="{{ $person[0] }} aceptado en el proyecto">
+                            <em>{{ $talento['match'] }}% match</em>
+                            <button type="button" data-toast-msg="{{ $talento['name'] }} aceptado en el proyecto">
                                 <x-icon name="check" /> Aceptar
                             </button>
                             <button type="button" data-toast-msg="Perfil guardado para más tarde">
