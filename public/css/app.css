@@ -3385,6 +3385,132 @@ footer {
   font-weight: 800;
 }
 
+/* Mensajes: plantillas rápidas sobre el chat */
+.chat-quick-templates {
+  padding: 0 14px 10px;
+  border-bottom: 1px solid #e1dfd8;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.chat-quick-templates::-webkit-scrollbar {
+  display: none;
+}
+.chat-quick-templates button {
+  padding: 7px 11px;
+  border: 1px solid #deddd6;
+  border-radius: 999px;
+  color: #657572;
+  background: #f7f6f1;
+  font-size: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.chat-quick-templates button:hover {
+  color: white;
+  background: #183b3f;
+  border-color: #183b3f;
+}
+
+/* Mensajes: agendar reunión en el panel contextual */
+.context-schedule {
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+}
+.context-schedule button {
+  margin-top: 0;
+  padding: 8px 10px;
+  border: 1px solid #deddd6;
+  border-radius: 9px;
+  justify-content: center;
+  color: #183b3f;
+  background: #e4f0eb;
+  font-size: 8px;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.context-schedule button:hover {
+  color: white;
+  background: #183b3f;
+  border-color: #183b3f;
+}
+
+/* Mensajes: archivos y enlaces compartidos */
+.shared-files {
+  margin-top: 6px;
+  padding: 12px 0;
+  border-top: 1px solid #e3e1da;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  text-align: left;
+}
+.shared-files > span {
+  color: #84908d;
+  font-size: 7px;
+  text-align: center;
+}
+.shared-files button {
+  margin-top: 0;
+  padding: 8px 10px;
+  border: 1px solid #e7e5de;
+  border-radius: 10px;
+  align-items: center;
+  color: #183337;
+  background: #fbfaf6;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.shared-files button:hover {
+  border-color: #c4c2bb;
+  background: white;
+}
+.shared-files button svg {
+  flex-shrink: 0;
+  color: #327064;
+}
+.shared-files button span {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.shared-files button b {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 9px;
+}
+.shared-files button small {
+  color: #9ba3a0;
+  font-size: 7px;
+}
+
+/* Mensajes: enlace "Abrir ficha" como botón centrado (antes quedaba desalineado) */
+.chat-context-link {
+  margin-top: 18px;
+  padding: 10px 14px;
+  border: 1px solid #deddd6;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #183b3f;
+  font-size: 8px;
+  font-weight: 800;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.chat-context-link:hover {
+  color: white;
+  background: #183b3f;
+  border-color: #183b3f;
+}
+
 .project-modal-backdrop {
   position: fixed;
   z-index: 140;
@@ -4852,6 +4978,61 @@ footer {
 }
 .dark .conversation-list > button.active .conversation-list b {
   color: var(--ink);
+}
+
+/* Mensajes: plantillas, agenda y archivos — modo oscuro */
+.dark .chat-quick-templates {
+  border-color: var(--line);
+}
+.dark .chat-quick-templates button {
+  border-color: var(--line);
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.06);
+}
+.dark .chat-quick-templates button:hover {
+  color: white;
+  background: #12454b;
+  border-color: #12454b;
+}
+.dark .context-schedule button {
+  border-color: transparent;
+  color: #8fd9c4;
+  background: rgba(94, 197, 168, 0.14);
+}
+.dark .context-schedule button:hover {
+  color: white;
+  background: #12454b;
+  border-color: #12454b;
+}
+.dark .shared-files {
+  border-color: var(--line);
+}
+.dark .shared-files > span {
+  color: var(--ink-soft);
+}
+.dark .shared-files button {
+  border-color: var(--line);
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.04);
+}
+.dark .shared-files button:hover {
+  border-color: var(--coral);
+  background: rgba(255, 255, 255, 0.07);
+}
+.dark .shared-files button svg {
+  color: #8fd9c4;
+}
+.dark .shared-files button small {
+  color: var(--ink-soft);
+}
+.dark .chat-context-link {
+  border-color: var(--line);
+  color: var(--ink);
+}
+.dark .chat-context-link:hover {
+  color: white;
+  background: #12454b;
+  border-color: #12454b;
 }
 
 /* ============================================================

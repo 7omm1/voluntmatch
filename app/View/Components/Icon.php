@@ -8,6 +8,8 @@ class Icon extends Component
 {
     private const PATHS = [
         'arrow' => '<path d="M5 12h14M13 6l6 6-6 6" />',
+        'calendar' => '<rect x="3" y="5" width="18" height="16" rx="2" /><path d="M8 3v4M16 3v4M3 11h18" />',
+        'video' => '<path d="m22 8-6 4 6 4V8Z" /><rect x="2" y="6" width="14" height="12" rx="2" />',
         'check' => '<path d="m5 12 4 4L19 6" />',
         'chevron' => '<path d="m8 10 4 4 4-4" />',
         'close' => '<path d="m6 6 12 12M18 6 6 18" />',

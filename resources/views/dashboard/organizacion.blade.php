@@ -662,8 +662,19 @@
                                 <small>16:22</small>
                             </div>
                         </div>
+                        {{-- Plantillas de respuesta rápida --}}
+                        <div class="chat-quick-templates" role="toolbar" aria-label="Plantillas de mensajes rápidos">
+                            @foreach ([
+                                'Hola, nos encantó tu perfil. ¿Tienes disponibilidad esta semana para una llamada de 15 min?',
+                                'Te confirmamos la entrevista para el jueves a las 17:00. ¿Te funciona?',
+                                '¡Felicidades! Fuiste seleccionado/a para el proyecto. Te envío los siguientes pasos.',
+                                'Gracias por tu postulación. Seguiremos con otros perfiles por ahora, ¡éxitos!',
+                            ] as $plantilla)
+                                <button type="button" data-template="{{ $plantilla }}">{{ mb_substr($plantilla, 0, 34) }}…</button>
+                            @endforeach
+                        </div>
                         <form data-chat-form>
-                            <button type="button">+</button>
+                            <button type="button" data-chat-attach aria-label="Adjuntar archivo">+</button>
                             <input type="text" placeholder="Escribe un mensaje..." data-chat-input />
                             <button type="submit"><x-icon name="arrow" /></button>
                         </form>
@@ -675,13 +686,40 @@
                         <div>
                             <span>Próxima reunión</span>
                             <b>Jueves · 17:00</b>
+                            {{-- Agendar reunión sin salir del chat --}}
+                            <div class="context-schedule">
+                                <button type="button" data-schedule="meet">
+                                    <x-icon name="video" :size="11" /> Enlace Meet
+                                </button>
+                                <button type="button" data-schedule="calendar">
+                                    <x-icon name="calendar" :size="11" /> Invitar
+                                </button>
+                            </div>
                         </div>
                         <div>
                             <span>Entregables</span>
                             <b>2 de 4 listos</b>
                         </div>
-                        <a href="{{ route('detalle-oportunidad', ['id' => 1]) }}">
-                            Abrir ficha <x-icon name="arrow" />
+                        {{-- Gestor de archivos y enlaces compartidos en el chat --}}
+                        <div class="shared-files">
+                            <span>Archivos y enlaces</span>
+                            @foreach ([
+                                ['icon' => 'download', 'label' => 'Brief del proyecto.pdf', 'meta' => 'PDF · 240 KB'],
+                                ['icon' => 'download', 'label' => 'Guion de entrevista.docx', 'meta' => 'Word · 18 KB'],
+                                ['icon' => 'arrow', 'label' => 'Tablero de Figma', 'meta' => 'Enlace'],
+                                ['icon' => 'download', 'label' => 'Cronograma.xlsx', 'meta' => 'Excel · 32 KB'],
+                            ] as $archivo)
+                                <button type="button" data-shared-file="{{ $archivo['label'] }}">
+                                    <x-icon name="{{ $archivo['icon'] }}" :size="11" />
+                                    <span>
+                                        <b>{{ $archivo['label'] }}</b>
+                                        <small>{{ $archivo['meta'] }}</small>
+                                    </span>
+                                </button>
+                            @endforeach
+                        </div>
+                        <a class="chat-context-link" href="{{ route('detalle-oportunidad', ['id' => 1]) }}">
+                            Abrir ficha <x-icon name="arrow" :size="11" />
                         </a>
                     </aside>
                 </div>
