@@ -477,15 +477,17 @@ document.querySelectorAll('[data-toggle-status]').forEach((button) => {
 const projectsNew = document.querySelector('[data-projects-new]');
 const projectRowTemplate = document.querySelector('[data-project-row]');
 
-document.querySelector('[data-add-project]')?.addEventListener('click', () => {
-    if (!projectsNew || !projectRowTemplate) return;
-    const total = document.querySelectorAll('[data-project-row]').length + projectsNew.children.length + 1;
-    const row = projectRowTemplate.cloneNode(true);
-    row.querySelector('b').textContent = `Nuevo reto ${total}`;
-    row.querySelector('small').textContent = '0 candidatos · Creado hoy';
-    const status = row.querySelector('.status');
-    status.className = 'status borrador';
-    status.textContent = 'Borrador';
-    projectsNew.appendChild(row);
-    showToast('Borrador de proyecto creado');
+document.querySelectorAll('[data-add-project]').forEach((button) => {
+    button.addEventListener('click', () => {
+        if (!projectsNew || !projectRowTemplate) return;
+        const total = document.querySelectorAll('[data-project-row]').length + projectsNew.children.length + 1;
+        const row = projectRowTemplate.cloneNode(true);
+        row.querySelector('b').textContent = `Nuevo reto ${total}`;
+        row.querySelector('small').textContent = '0 candidatos · Creado hoy';
+        const status = row.querySelector('.status');
+        status.className = 'status borrador';
+        status.textContent = 'Borrador';
+        projectsNew.appendChild(row);
+        showToast('Borrador de proyecto creado');
+    });
 });

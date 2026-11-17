@@ -71,6 +71,9 @@
                     <h2 data-dash-heading>Hola, equipo {{ explode(' ', trim($user->name))[0] }}.</h2>
                 </div>
                 <div class="dashboard-top-actions">
+                    <button type="button" class="dash-create-button" data-add-project data-goto="projects">
+                        + Crear oportunidad
+                    </button>
                     <button class="dash-theme-button" type="button" data-theme-toggle
                         aria-label="Alternar modo oscuro">
                         <span class="theme-icon-light"><x-icon name="moon" /></span>
@@ -114,6 +117,27 @@
                         <small>↗ 6% este mes</small>
                     </article>
                 </div>
+                <section class="dashboard-card attention-card">
+                    <div class="card-heading">
+                        <div>
+                            <p>REQUIERE TU ATENCIÓN</p>
+                            <h3>Tareas pendientes</h3>
+                        </div>
+                        <span class="attention-badge">{{ count($pendientes) }} por resolver</span>
+                    </div>
+                    @foreach ($pendientes as $pendiente)
+                        <div class="attention-row">
+                            <span class="list-icon"><x-icon name="{{ $pendiente['icon'] }}" /></span>
+                            <span class="attention-info">
+                                <b>{{ $pendiente['title'] }}</b>
+                                <small>{{ $pendiente['detail'] }}</small>
+                            </span>
+                            <button type="button" data-goto="{{ $pendiente['goto'] }}">
+                                {{ $pendiente['action'] }} <x-icon name="arrow" />
+                            </button>
+                        </div>
+                    @endforeach
+                </section>
                 <div class="overview-grid">
                     <section class="dashboard-card">
                         <div class="card-heading">
@@ -140,23 +164,48 @@
                             </button>
                         @endforeach
                     </section>
-                    <section class="dashboard-card quick-card">
-                        <div class="card-heading">
-                            <div>
-                                <p>ACCIÓN RÁPIDA</p>
-                                <h3>Encuentra talento</h3>
+                    <div class="overview-aside">
+                        <section class="dashboard-card quick-card">
+                            <div class="card-heading">
+                                <div>
+                                    <p>ACCIÓN RÁPIDA</p>
+                                    <h3>Encuentra talento</h3>
+                                </div>
                             </div>
-                        </div>
-                        <div class="talent-preview">
-                            @foreach ([47, 12, 32] as $img)
-                                <img src="https://i.pravatar.cc/90?img={{ $img }}" alt="" />
+                            <div class="talent-preview">
+                                @foreach ([47, 12, 32] as $img)
+                                    <img src="https://i.pravatar.cc/90?img={{ $img }}" alt="" />
+                                @endforeach
+                            </div>
+                            <p>24 estudiantes coinciden con tus proyectos abiertos.</p>
+                            <button type="button" data-goto="talent">
+                                Buscar talento <x-icon name="arrow" />
+                            </button>
+                        </section>
+                        <section class="dashboard-card milestone-card">
+                            <div class="card-heading">
+                                <div>
+                                    <p>ESTA SEMANA</p>
+                                    <h3>Próximos hitos</h3>
+                                </div>
+                            </div>
+                            @foreach ($hitos as $hito)
+                                <div class="milestone-row">
+                                    <span class="milestone-date">
+                                        <b>{{ $hito['date'] }}</b>
+                                        <small>{{ $hito['day'] }}</small>
+                                    </span>
+                                    <span class="milestone-info">
+                                        <b>{{ $hito['title'] }}</b>
+                                        <small>{{ $hito['meta'] }}</small>
+                                    </span>
+                                    <em class="milestone-type {{ $hito['type'] }}">
+                                        {{ $hito['type'] === 'entrega' ? 'Entrega' : 'Reunión' }}
+                                    </em>
+                                </div>
                             @endforeach
-                        </div>
-                        <p>24 estudiantes coinciden con tus proyectos abiertos.</p>
-                        <button type="button" data-goto="talent">
-                            Buscar talento <x-icon name="arrow" />
-                        </button>
-                    </section>
+                        </section>
+                    </div>
                 </div>
             </div>
 

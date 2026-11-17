@@ -4994,3 +4994,188 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================================
+   DASHBOARD ONG — atención pendiente, hitos y crear oportunidad
+============================================================ */
+.dash-create-button {
+  height: 41px;
+  padding: 0 15px;
+  border-radius: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: white;
+  background: var(--coral);
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.dash-create-button:hover {
+  background: var(--coral-dark);
+}
+.overview-aside {
+  min-width: 0;
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+.overview-aside .dashboard-card {
+  margin-top: 0;
+}
+.attention-badge {
+  padding: 5px 11px;
+  border-radius: 999px;
+  color: #bf5a51;
+  background: #f3ded9;
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.attention-row,
+.milestone-row {
+  padding: 12px 0;
+  border-top: 1px solid #e8e6df;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  transition: background 0.2s ease;
+}
+.attention-row:hover,
+.milestone-row:hover {
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--coral) 6%, transparent);
+}
+.attention-info,
+.milestone-info {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.attention-info b,
+.milestone-info b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.attention-info small,
+.milestone-info small {
+  margin-top: 4px;
+  color: #7c8785;
+  font-size: 10px;
+}
+.attention-row > button {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid #deddd6;
+  border-radius: 9px;
+  color: #183b3f;
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.attention-row > button:hover {
+  border-color: var(--coral);
+  color: var(--coral-dark);
+}
+.milestone-date {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 1px;
+  background: #dcebe6;
+}
+.milestone-date b {
+  font: 800 13px "Manrope";
+  color: #32675e;
+}
+.milestone-date small {
+  color: #6f9389;
+  font-size: 8px;
+  font-weight: 700;
+}
+.milestone-type {
+  flex-shrink: 0;
+  padding: 4px 9px;
+  border-radius: 999px;
+  color: #3b6e65;
+  background: #e1eee9;
+  font-size: 8px;
+  font-weight: 800;
+  font-style: normal;
+  white-space: nowrap;
+}
+.milestone-type.entrega {
+  color: #a4631d;
+  background: #f6ead8;
+}
+
+/* ============================================================
+   MODO OSCURO — atención pendiente, hitos y crear oportunidad
+============================================================ */
+.dark .attention-row,
+.dark .milestone-row {
+  border-color: var(--line);
+}
+.dark .attention-row:hover,
+.dark .milestone-row:hover {
+  background: color-mix(in srgb, var(--coral) 14%, transparent);
+}
+.dark .attention-info b,
+.dark .milestone-info b {
+  color: var(--ink);
+}
+.dark .attention-info small,
+.dark .milestone-info small {
+  color: var(--ink-soft);
+}
+.dark .attention-badge {
+  color: #f0b3aa;
+  background: color-mix(in srgb, var(--coral) 22%, transparent);
+}
+.dark .attention-row > button {
+  border-color: var(--line);
+  color: var(--ink);
+}
+.dark .attention-row > button:hover {
+  border-color: var(--coral);
+  color: var(--coral);
+}
+.dark .milestone-date {
+  background: color-mix(in srgb, var(--mint) 18%, transparent);
+}
+.dark .milestone-date b {
+  color: var(--mint);
+}
+.dark .milestone-date small {
+  color: var(--ink-soft);
+}
+.dark .milestone-type {
+  color: var(--mint);
+  background: color-mix(in srgb, var(--mint) 15%, transparent);
+}
+.dark .milestone-type.entrega {
+  color: #f0b37a;
+  background: color-mix(in srgb, #f0a742 18%, transparent);
+}
+@media (max-width: 760px) {
+  .dash-create-button {
+    height: 39px;
+    padding: 0 10px;
+    font-size: 9px;
+  }
+  .attention-row,
+  .milestone-row {
+    flex-wrap: wrap;
+  }
+}
+
