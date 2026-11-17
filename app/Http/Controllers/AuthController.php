@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Anuncio;
+use App\Http\Controllers\Panel\VoluntarioPanelController;
 use App\Models\User;
-use App\Support\ChatDemo;
 use App\Support\Peru;
 use Closure;
 use Illuminate\Http\Request;
@@ -224,16 +223,7 @@ class AuthController extends Controller
         return match (auth()->user()->role) {
             'admin' => redirect()->route('dashboard-admin'),
             'organizacion' => redirect()->route('dashboard-organizacion'),
-            default => view('dashboard/voluntario', [
-                'oportunidades' => OportunidadController::demo(),
-                'conversaciones' => ChatDemo::conversaciones(),
-                'noLeidos' => ChatDemo::noLeidos(),
-                'anuncios' => Anuncio::activos()
-                    ->whereIn('audiencia', ['todos', 'voluntario'])
-                    ->latest()
-                    ->limit(3)
-                    ->get(),
-            ]),
+            default => app(VoluntarioPanelController::class)->resumen(),
         };
     }
 }

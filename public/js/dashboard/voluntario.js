@@ -1,35 +1,37 @@
 /*
- * VoluntMatch — Panel del voluntario: baraja de matches,
- postulaciones, sliders de habilidades y estrellas de valoración
+ * VoluntMatch — Panel del voluntario: baraja de matches horizontal,
+ * sliders de habilidades y estrellas de valoración.
  */
 /* ============================================================
-   DASHBOARD — baraja de matches estilo Tinder
+   DASHBOARD — baraja de matches (solo izquierda / derecha)
 ============================================================ */
 const swipeDeck = document.querySelector('[data-swipe-deck]');
 if (swipeDeck) {
     const stage = swipeDeck.querySelector('[data-deck-stage]');
     const emptyState = swipeDeck.querySelector('[data-deck-empty]');
+    const actions = swipeDeck.querySelector('.swipe-actions');
     const initialDeckHTML = stage.innerHTML;
-    const SWIPE_OUT = 110;
+    const SWIPE_OUT = 90;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
     const bindCard = (card) => {
         card.addEventListener('pointerdown', (event) => {
             if (!card.classList.contains('is-top')) return;
+            if (event.pointerType === 'mouse' && event.button !== 0) return;
             event.preventDefault();
             card.setPointerCapture(event.pointerId);
             card.classList.add('is-dragging');
 
             const startX = event.clientX;
-            const startY = event.clientY;
             const like = card.querySelector('.stamp-like');
             const nope = card.querySelector('.stamp-nope');
 
             const onMove = (moveEvent) => {
+                // Solo cuenta el eje horizontal: la tarjeta no sube ni baja.
                 const dx = moveEvent.clientX - startX;
-                const dy = moveEvent.clientY - startY;
-                card.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx / 22}deg)`;
-                if (like) like.style.opacity = Math.max(0, Math.min(1, dx / 90));
-                if (nope) nope.style.opacity = Math.max(0, Math.min(1, -dx / 90));
+                card.style.transform = `translate(${dx}px, 0) rotate(${dx / 22}deg)`;
+                if (like) like.style.opacity = Math.max(0, Math.min(1, dx / 80));
+                if (nope) nope.style.opacity = Math.max(0, Math.min(1, -dx / 80));
             };
 
             const onUp = (upEvent) => {
@@ -73,27 +75,52 @@ if (swipeDeck) {
             if (nope) nope.style.opacity = 0;
         });
 
-        if (emptyState) {
-            emptyState.hidden = cards.length > 0;
-        }
-        if (stage) {
-            stage.hidden = cards.length === 0;
-        }
+        if (emptyState) emptyState.hidden = cards.length > 0;
+        if (stage) stage.hidden = cards.length === 0;
+        if (actions) actions.hidden = cards.length === 0;
         swipeDeck.classList.toggle('deck-done', cards.length === 0);
+    };
+
+    /* Envía la postulación real al servidor cuando la tarjeta cae a la derecha. */
+    const postular = async (card) => {
+        const url = card.dataset.postularUrl;
+        if (!url) {
+            showToast('No pudimos enviar tu postulación');
+            return;
+        }
+
+        try {
+            const respuesta = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfToken ?? '',
+                },
+                body: JSON.stringify({}),
+            });
+
+            if (!respuesta.ok) throw new Error('request failed');
+
+            const datos = await respuesta.json();
+            showToast(datos.mensaje ?? 'Postulación enviada');
+        } catch (error) {
+            showToast('No pudimos guardar tu postulación. Inténtalo de nuevo.');
+        }
     };
 
     const swipeCard = (card, direction, distance = SWIPE_OUT + 120) => {
         if (!card || !card.classList.contains('is-top')) return;
         card.classList.remove('is-top');
         card.style.transition = 'transform 0.45s cubic-bezier(0.3, 0, 0.7, 1), opacity 0.45s';
-        card.style.transform = `translate(${direction * distance * 1.6}px, 110px) rotate(${direction * 22}deg)`;
+        // Salida estrictamente horizontal: nada de movimiento vertical.
+        card.style.transform = `translate(${direction * distance * 1.6}px, 0) rotate(${direction * 22}deg)`;
         card.style.opacity = '0';
         card.style.pointerEvents = 'none';
         card.classList.add('is-out');
 
         if (direction > 0) {
-            const title = card.dataset.title || card.querySelector('h3')?.textContent?.trim();
-            applyTo(title);
+            postular(card);
         } else {
             showToast('Match descartado');
         }
@@ -121,41 +148,7 @@ if (swipeDeck) {
 }
 
 /* ============================================================
-   DASHBOARD — postulaciones
-============================================================ */
-const applicationsNew = document.querySelector('[data-applications-new]');
-const applicationsCount = document.querySelector('[data-applications-count]');
-const applied = new Set();
-
-function applyTo(title) {
-    if (!title || applied.has(title)) {
-        if (title) showToast('Ya estás postulado a este reto');
-        return;
-    }
-    applied.add(title);
-    if (applicationsNew) {
-        const row = document.createElement('div');
-        row.className = 'application-row';
-        row.innerHTML = `
-            <span class="list-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6l1.2 1.2L12 21l7.6-7.6 1.2-1.2a5.4 5.4 0 0 0 0-7.6Z"/></svg></span>
-            <span><b>${title}</b><small>Nueva organización</small></span>
-            <span class="status en-revisión">En revisión</span>
-            <em>Enviada hoy</em>
-        `;
-        applicationsNew.appendChild(row);
-    }
-    if (applicationsCount) {
-        applicationsCount.textContent = `${3 + applied.size} activas`;
-    }
-    showToast('Postulación enviada correctamente');
-}
-
-document.querySelectorAll('[data-apply]').forEach((el) => {
-    el.addEventListener('click', () => applyTo(el.dataset.apply));
-});
-
-/* ============================================================
-   DASHBOARD — sliders de habilidades / algoritmo
+   DASHBOARD — sliders de habilidades
 ============================================================ */
 document.querySelectorAll('[data-range]').forEach((input) => {
     const label = input.closest('label');

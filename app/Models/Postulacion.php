@@ -10,11 +10,14 @@ class Postulacion extends Model
     /** Laravel pluraliza en ingles; esta tabla vive en espanol. */
     protected $table = 'postulaciones';
 
+    public const ESTADOS = ['en revision', 'en entrevista', 'aceptado', 'rechazado'];
+
     protected $fillable = [
         'user_id',
         'oportunidad_id',
         'estado',
         'nota',
+        'nota_interna',
     ];
 
     /** Estado inicial mientras la ONG no lo revisa. */
@@ -44,5 +47,38 @@ class Postulacion extends Model
     public function oportunidad(): BelongsTo
     {
         return $this->belongsTo(Oportunidad::class);
+    }
+
+    /** Etapa del Match Inbox de la ONG. */
+    public function etapa(): string
+    {
+        return match ($this->estado) {
+            'en entrevista' => 'entrevista',
+            'aceptado' => 'aceptado',
+            'rechazado' => 'rechazado',
+            default => 'por-revisar',
+        };
+    }
+
+    /** Etiqueta legible del estado para el estudiante. */
+    public function estadoLegible(): string
+    {
+        return match ($this->estado) {
+            'en entrevista' => 'En entrevista',
+            'aceptado' => 'Aceptado',
+            'rechazado' => 'Rechazado',
+            default => 'En revisión',
+        };
+    }
+
+    /** Clase CSS del badge de estado. */
+    public function estadoClase(): string
+    {
+        return match ($this->estado) {
+            'en entrevista' => 'en-entrevista',
+            'aceptado' => 'aceptado',
+            'rechazado' => 'rechazada',
+            default => 'en-revisión',
+        };
     }
 }

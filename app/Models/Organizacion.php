@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Organizacion extends Model
 {
@@ -45,6 +46,12 @@ class Organizacion extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** Oportunidades publicadas por la ONG. */
+    public function oportunidades(): HasMany
+    {
+        return $this->hasMany(Oportunidad::class);
     }
 
     /** Administrador que aprobo la verificacion. */

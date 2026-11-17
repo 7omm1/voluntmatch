@@ -1,8 +1,9 @@
 /*
- * VoluntMatch — Match Inbox: etapas, rechazo y notas internas
+ * VoluntMatch — Match Inbox de la ONG: etapas y notas internas
+ * persistidas en la base de datos.
  */
 /* ============================================================
-   DASHBOARD ONG — Match Inbox: etapas, rechazo y notas internas
+   DASHBOARD ONG — Match Inbox
 ============================================================ */
 const inboxList = document.querySelector('[data-inbox-list]');
 
@@ -14,30 +15,23 @@ if (inboxList) {
         aceptado: 'Aceptado',
         rechazado: 'Rechazado',
     };
-    const INBOX_STORAGE_KEY = 'voluntmatch-inbox';
+    const STAGE_TO_ESTADO = {
+        'por-revisar': 'en revision',
+        entrevista: 'en entrevista',
+        aceptado: 'aceptado',
+        rechazado: 'rechazado',
+    };
 
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
     const inboxKanban = document.querySelector('[data-inbox-kanban]');
     const inboxNewChip = document.querySelector('[data-inbox-new]');
     const inboxItems = [...inboxList.querySelectorAll('[data-candidate-item]')];
     const kanbanCards = [...document.querySelectorAll('[data-candidate-card]')];
 
-    /* Etapas y notas persistidas en el navegador (demo sin backend) */
-    let inboxState = { stages: {}, notes: {} };
-    try {
-        inboxState = { ...inboxState, ...JSON.parse(localStorage.getItem(INBOX_STORAGE_KEY) || '{}') };
-        inboxState.stages = inboxState.stages || {};
-        inboxState.notes = inboxState.notes || {};
-    } catch (error) {
-        inboxState = { stages: {}, notes: {} };
-    }
-
-    const saveInboxState = () => localStorage.setItem(INBOX_STORAGE_KEY, JSON.stringify(inboxState));
-    const stageOf = (item) =>
-        inboxState.stages[item.dataset.candidate] ||
-        item.querySelector('[data-candidate-row]').dataset.stage;
+    const stageOf = (item) => item.querySelector('[data-candidate-row]').dataset.stage;
     const stageIndex = (stage) => INBOX_STAGES.indexOf(stage);
     const cardOf = (item) =>
-        kanbanCards.find((card) => card.dataset.candidate === item.dataset.candidate);
+        kanbanCards.find((card) => card.dataset.postulacion === item.dataset.postulacion);
 
     const updateInboxCounts = () => {
         INBOX_STAGES.forEach((stage) => {
@@ -49,22 +43,22 @@ if (inboxList) {
         if (inboxNewChip) inboxNewChip.textContent = `${pending} por revisar`;
     };
 
-    /* Aplica una etapa a la fila de lista y a su tarjeta kanban */
-    const syncCandidateUI = (item, stage) => {
+    const syncCandidateUI = (item, stage, label) => {
         const row = item.querySelector('[data-candidate-row]');
         const badge = row.querySelector('[data-stage-badge]');
         row.dataset.stage = stage;
         badge.dataset.stage = stage;
-        badge.textContent = INBOX_LABELS[stage] ?? stage;
+        badge.textContent = label ?? INBOX_LABELS[stage] ?? stage;
 
         const settled = stage === 'aceptado' || stage === 'rechazado';
-        row.querySelector('[data-candidate-accept]').hidden = settled;
-        row.querySelector('[data-candidate-reject]').hidden = settled;
+        const accept = row.querySelector('[data-candidate-accept]');
+        const reject = row.querySelector('[data-candidate-reject]');
+        if (accept) accept.hidden = settled;
+        if (reject) reject.hidden = settled;
 
         const card = cardOf(item);
         if (card) {
             card.dataset.stage = stage;
-            card.toggleAttribute('data-has-note', Boolean(inboxState.notes[item.dataset.candidate]));
             const column = document.querySelector(`[data-kanban-column="${stage}"] [data-kanban-cards]`);
             if (column) column.appendChild(card);
             const prev = card.querySelector('[data-candidate-move="prev"]');
@@ -74,21 +68,47 @@ if (inboxList) {
         }
     };
 
-    /* Ordena la bandeja: lo pendiente arriba, descartados al fondo */
     const sortInboxList = () => {
         [...inboxItems]
             .sort((a, b) => stageIndex(stageOf(a)) - stageIndex(stageOf(b)))
             .forEach((item) => inboxList.appendChild(item));
     };
 
-    const moveCandidate = (item, stage, toastMessage) => {
+    /* Guarda la etapa en el servidor y refleja el resultado en la interfaz. */
+    const persistCandidate = async (item, payload) => {
+        const url = item.dataset.updateUrl;
+        if (!url) return null;
+
+        try {
+            const respuesta = await fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfToken ?? '',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!respuesta.ok) throw new Error('request failed');
+
+            return await respuesta.json();
+        } catch (error) {
+            showToast('No pudimos guardar el cambio. Inténtalo de nuevo.');
+            return null;
+        }
+    };
+
+    const moveCandidate = async (item, stage, toastMessage) => {
         if (!INBOX_STAGES.includes(stage)) return;
-        inboxState.stages[item.dataset.candidate] = stage;
-        saveInboxState();
-        syncCandidateUI(item, stage);
+
+        const datos = await persistCandidate(item, { estado: STAGE_TO_ESTADO[stage] });
+        if (!datos) return;
+
+        syncCandidateUI(item, datos.etapa, datos.legible);
         sortInboxList();
         updateInboxCounts();
-        showToast(toastMessage ?? `${item.dataset.candidate} movido a ${INBOX_LABELS[stage]}`);
+        showToast(toastMessage ?? `${item.dataset.candidate} movido a ${datos.legible}`);
     };
 
     const setInboxView = (view) => {
@@ -104,7 +124,6 @@ if (inboxList) {
         btn.addEventListener('click', () => setInboxView(btn.dataset.inboxView));
     });
 
-    /* Abre la nota interna de un candidato y cambia a la vista lista */
     const openCandidateNotes = (item) => {
         setInboxView('list');
         const panel = item.querySelector('[data-candidate-notes]');
@@ -124,22 +143,18 @@ if (inboxList) {
 
         syncCandidateUI(item, stageOf(item));
 
-        /* Aceptar: pasa a la etapa "Aceptado" */
         row.querySelector('[data-candidate-accept]').addEventListener('click', () => {
             moveCandidate(item, 'aceptado', `${name} aceptado en ${project}`);
         });
 
-        /* Rechazar: descarta y notifica con mensaje automático amable */
         row.querySelector('[data-candidate-reject]').addEventListener('click', () => {
             moveCandidate(
                 item,
                 'rechazado',
-                `${name} descartado · Mensaje enviado: "Gracias por tu interés en ${project}. Seguimos con otros perfiles, ¡éxitos!"`,
+                `${name} descartado · Mensaje enviado: "Gracias por tu interés en ${project}."`,
             );
         });
 
-        /* Nota interna: se guarda en el navegador */
-        notesInput.value = inboxState.notes[name] || '';
         notesToggle.addEventListener('click', () => {
             const open = notesPanel.hidden;
             notesPanel.hidden = !open;
@@ -147,26 +162,27 @@ if (inboxList) {
             notesToggle.setAttribute('aria-expanded', String(open));
             if (open) notesInput.focus();
         });
-        notesPanel.querySelector('[data-candidate-note-save]').addEventListener('click', () => {
-            const note = notesInput.value.trim();
-            if (note) inboxState.notes[name] = note;
-            else delete inboxState.notes[name];
-            saveInboxState();
-            syncCandidateUI(item, stageOf(item));
-            showToast(note ? `Nota interna guardada sobre ${name}` : `Nota de ${name} eliminada`);
+
+        notesPanel.querySelector('[data-candidate-note-save]').addEventListener('click', async () => {
+            const nota = notesInput.value.trim();
+            const datos = await persistCandidate(item, { nota_interna: nota === '' ? null : nota });
+            if (!datos) return;
+            notesInput.value = datos.nota_interna ?? '';
+            showToast(nota ? `Nota interna guardada sobre ${name}` : `Nota de ${name} eliminada`);
         });
     });
 
-    /* Mover candidatos entre etapas desde el kanban */
     kanbanCards.forEach((card) => {
-        const item = inboxItems.find((el) => el.dataset.candidate === card.dataset.candidate);
+        const item = inboxItems.find((el) => el.dataset.postulacion === card.dataset.postulacion);
         if (!item) return;
+
         card.querySelectorAll('[data-candidate-move]').forEach((btn) => {
             btn.addEventListener('click', () => {
                 const next = stageIndex(stageOf(item)) + (btn.dataset.candidateMove === 'next' ? 1 : -1);
                 moveCandidate(item, INBOX_STAGES[next]);
             });
         });
+
         card.querySelector('[data-candidate-notes-jump]')?.addEventListener('click', () => {
             openCandidateNotes(item);
         });

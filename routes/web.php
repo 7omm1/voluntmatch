@@ -12,8 +12,9 @@ use App\Http\Controllers\Admin\ReporteController as AdminReporteController;
 use App\Http\Controllers\Admin\TicketController as AdminTicketController;
 use App\Http\Controllers\Admin\UsuarioController as AdminUsuarioController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OportunidadController;
+use App\Http\Controllers\Panel\OngPanelController;
+use App\Http\Controllers\Panel\VoluntarioPanelController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\PostulacionController;
 use Illuminate\Http\Request;
@@ -61,12 +62,35 @@ Route::middleware('guest')->group(function () {
 // Rutas Protegidas (Solo Usuarios Autenticados)
 Route::middleware('auth')->group(function () {
     Route::get('/home', [AuthController::class, 'home'])->name('home');
-    Route::get('/dashboard-organizacion', [DashboardController::class, 'index'])->middleware('role:organizacion')->name('dashboard-organizacion');
+    Route::get('/dashboard-organizacion', [OngPanelController::class, 'resumen'])->middleware('role:organizacion')->name('dashboard-organizacion');
     Route::get('/dashboard-admin', [AdminDashboardController::class, 'index'])->middleware('role:admin')->name('dashboard-admin');
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::post('/postular', [PostulacionController::class, 'guardar'])->middleware('role:voluntario')->name('postular');
     Route::post('/perfil', [PerfilController::class, 'actualizar'])->name('perfil.actualizar');
     Route::post('/perfil/skills', [PerfilController::class, 'skills'])->name('perfil.skills');
+});
+
+// Espacio del estudiante: una pagina y una URL por seccion.
+Route::middleware(['auth', 'role:voluntario'])->prefix('mi-espacio')->name('voluntario.')->group(function () {
+    Route::get('/', [VoluntarioPanelController::class, 'resumen'])->name('resumen');
+    Route::get('/skills', [VoluntarioPanelController::class, 'skills'])->name('skills');
+    Route::get('/matches', [VoluntarioPanelController::class, 'matches'])->name('matches');
+    Route::get('/postulaciones', [VoluntarioPanelController::class, 'postulaciones'])->name('postulaciones');
+    Route::get('/impacto', [VoluntarioPanelController::class, 'impacto'])->name('impacto');
+    Route::get('/mensajes', [VoluntarioPanelController::class, 'mensajes'])->name('mensajes');
+    Route::post('/postular/{oportunidad}', [VoluntarioPanelController::class, 'postular'])->name('postular');
+});
+
+// Panel de la ONG: paginas propias y acciones persistentes sobre candidatos.
+Route::middleware(['auth', 'role:organizacion'])->prefix('panel-ong')->name('ong.')->group(function () {
+    Route::get('/', [OngPanelController::class, 'resumen'])->name('resumen');
+    Route::get('/oportunidades', [OngPanelController::class, 'oportunidades'])->name('oportunidades');
+    Route::post('/oportunidades', [OngPanelController::class, 'guardarOportunidad'])->name('oportunidades.store');
+    Route::get('/talento', [OngPanelController::class, 'talento'])->name('talento');
+    Route::get('/candidatos', [OngPanelController::class, 'candidatos'])->name('candidatos');
+    Route::patch('/candidatos/{postulacion}', [OngPanelController::class, 'actualizarCandidato'])->name('candidatos.actualizar');
+    Route::get('/metricas', [OngPanelController::class, 'metricas'])->name('metricas');
+    Route::get('/mensajes', [OngPanelController::class, 'mensajes'])->name('mensajes');
 });
 
 // Panel de administracion: cada modulo tiene su propia ruta y accion.

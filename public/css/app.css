@@ -7552,3 +7552,97 @@ body {
   color: #476c9c !important;
   background: #dfe7f4;
 }
+
+/* ============================================================
+   PANELES DE ESTUDIANTE Y ONG — PÁGINAS INDEPENDIENTES
+============================================================ */
+.panel-empty {
+  margin: 18px 0;
+  padding: 18px 20px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  color: #6c7a78;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.panel-empty p {
+  margin: 0 0 10px;
+}
+.dark .panel-empty {
+  color: var(--ink-soft);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+.talent-avatar,
+.talent-initials {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  background: linear-gradient(135deg, #ff8d81, #ffd8a8);
+  color: #5c2b22;
+  font: 800 16px "Manrope", sans-serif;
+  letter-spacing: 0.02em;
+}
+.talent-initials {
+  width: 40px;
+  height: 40px;
+  font-size: 12px;
+}
+.talent-card .talent-avatar {
+  margin-bottom: 10px;
+}
+.project-create {
+  margin-bottom: 22px;
+}
+.project-create-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+.project-create-form label {
+  display: grid;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #4d5c5a;
+}
+.dark .project-create-form label {
+  color: var(--ink-soft);
+}
+.project-create-form input,
+.project-create-form select,
+.project-create-form textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+}
+.project-create-wide {
+  grid-column: 1 / -1;
+}
+.row-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--coral);
+  white-space: nowrap;
+}
+.candidate-message {
+  color: #6c7a78;
+  font-style: italic;
+}
+.badges .is-locked {
+  opacity: 0.45;
+}
+@media (max-width: 720px) {
+  .project-create-form {
+    grid-template-columns: 1fr;
+  }
+}

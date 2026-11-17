@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'VoluntMatch — Tu talento tiene un lugar donde hacer match')</title>
     <script>
         try {
@@ -26,7 +27,6 @@
     <script src="{{ asset('js/site/toasts.js') }}" defer></script>
     <script src="{{ asset('js/site/form-steps.js') }}" defer></script>
     <script src="{{ asset('js/site/registro-ong.js') }}" defer></script>
-    <script src="{{ asset('js/dashboard/navegacion.js') }}" defer></script>
     <script src="{{ asset('js/dashboard/proyecto-modal.js') }}" defer></script>
     <script src="{{ asset('js/dashboard/voluntario.js') }}" defer></script>
     <script src="{{ asset('js/dashboard/chat.js') }}" defer></script>
