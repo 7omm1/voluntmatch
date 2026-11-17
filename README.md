@@ -10,7 +10,9 @@ El proyecto esta construido sobre Laravel (aplicacion monolitica con Blade como 
 
 - Laravel 11 (PHP >= 8.2) con Blade templates.
 - SQLite por defecto (listo para usar) o MySQL, configurable en `.env`.
-- CSS y JavaScript planos servidos directamente desde `public/css/app.css` y `public/js/app.js`.
+- CSS y JavaScript planos servidos directamente desde `public/css/app.css` y `public/js/`
+  (dividido en modulos por responsabilidad en `js/site/` y `js/dashboard/`, sin build: se
+  cargan en orden con `defer`).
   No hay Vite, Tailwind ni `npm`: el proyecto corre solo con PHP y Laravel.
 - Autenticacion con el sistema de sesiones nativo de Laravel (regeneracion de sesion al entrar,
   limitador de intentos en el login y middleware de roles).
@@ -51,7 +53,10 @@ voluntmatch/
 ├── lang/es/                              # mensajes de validacion en espanol
 ├── public/
 │   ├── css/app.css                       # todo el estilo del sitio y de los dashboards (CSS plano)
-│   └── js/app.js                         # interactividad: modales, secciones de dashboard, matches, chat, toasts, tema
+│   └── js/
+│       ├── site/                          # tema, menu movil, reveal, cursor, hero slider y toasts
+│       └── dashboard/                     # paneles: navegacion, modal de proyecto, voluntario,
+│                                          # chat, talento, admin, proyectos ONG, inbox y metricas
 ├── resources/views/
 │   ├── layouts/base.blade.php            # plantilla base (head, tema claro/oscuro, scripts)
 │   ├── partials/                         # header.blade.php y footer.blade.php reutilizables
@@ -111,7 +116,7 @@ Los mensajes de validacion estan en espanol en `lang/es/validation.php` (`APP_LO
 
 Ruta: `/home` (rol `voluntario`), vista `dashboard/voluntario.blade.php`, estilo `dashboard-student`.
 
-Pestanas (navegacion por `data-section` / `data-panel` en `public/js/app.js`):
+Pestanas (navegacion por `data-section` / `data-panel` en `public/js/dashboard/navegacion.js`):
 
 1. Mi resumen: metricas del voluntario, matches recomendados y completitud de perfil.
 2. Skills Passport: mapa de fortalezas (grafico radar) y deslizadores para ajustar habilidades.
