@@ -103,7 +103,7 @@ Pestanas:
 2. Oportunidades: gestion de proyectos publicados (crear, editar estado).
 3. Buscar talento: busqueda de voluntarios por habilidad.
 4. Candidatos (Match Inbox): bandeja de postulaciones recibidas en vista lista o kanban, con etapas (por revisar, en entrevista, aceptado, rechazado), rechazo con mensaje automatico, proyecto al que postula cada candidato y notas internas del equipo.
-5. Metricas: impacto agregado de los proyectos de la organizacion.
+5. Metricas: impacto agregado con selector de rango de fechas (ultimo mes, trimestre, ano, historico), grafico de evolucion de horas, exportacion del reporte a CSV/PDF y evaluacion de voluntarios con proyecto asociado.
 6. Mensajes: chat directo con voluntarios postulados.
 
 ## Panel del administrador

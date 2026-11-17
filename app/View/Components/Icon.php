@@ -11,6 +11,7 @@ class Icon extends Component
         'check' => '<path d="m5 12 4 4L19 6" />',
         'chevron' => '<path d="m8 10 4 4 4-4" />',
         'close' => '<path d="m6 6 12 12M18 6 6 18" />',
+        'download' => '<path d="M12 4v11M7 11l5 5 5-5M5 20h14" />',
         'heart' => '<path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6l1.2 1.2L12 21l7.6-7.6 1.2-1.2a5.4 5.4 0 0 0 0-7.6Z" />',
         'menu' => '<path d="M4 7h16M4 12h16M4 17h16" />',
         'moon' => '<path d="M20.5 15.5A9 9 0 0 1 8.5 3.5a9 9 0 1 0 12 12Z" />',

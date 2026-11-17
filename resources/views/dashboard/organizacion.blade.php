@@ -504,19 +504,54 @@
 
             {{-- MÉTRICAS --}}
             <div data-panel="impact" data-heading="Métricas" hidden>
+                {{-- Barra de herramientas: rango de fechas y exportación --}}
+                <section class="impact-toolbar">
+                    <div class="impact-ranges">
+                        @foreach ([
+                            ['key' => 'mes', 'label' => 'Último mes'],
+                            ['key' => 'trimestre', 'label' => 'Trimestre'],
+                            ['key' => 'anio', 'label' => 'Año'],
+                            ['key' => 'historico', 'label' => 'Histórico'],
+                        ] as $rango)
+                            <button type="button" data-impact-range="{{ $rango['key'] }}"
+                                @if ($rango['key'] === 'historico') class="active" @endif>
+                                {{ $rango['label'] }}
+                            </button>
+                        @endforeach
+                    </div>
+                    <div class="impact-export">
+                        <button type="button" data-impact-export="csv">
+                            <x-icon name="download" :size="12" /> CSV
+                        </button>
+                        <button type="button" data-impact-export="pdf">
+                            <x-icon name="download" :size="12" /> PDF
+                        </button>
+                    </div>
+                </section>
+
                 <div class="analytics-layout">
                     <section class="impact-hero-card ngo-impact">
                         <div>
                             <p>IMPACTO DE LA ORGANIZACIÓN</p>
-                            <h3>684 horas de talento que multiplican vuestra misión.</h3>
+                            <h3><span data-impact-hours-label>684</span> horas de talento que multiplican vuestra misión.</h3>
                             <span>
-                                Un ahorro estimado de <b>S/ 74.000</b> en servicios profesionales.
+                                Un ahorro estimado de <b data-impact-savings>S/ 74.000</b> en servicios profesionales.
                             </span>
                         </div>
                         <div class="impact-orbit">
-                            <strong>684<small>HORAS</small></strong>
+                            <strong><span data-impact-hours-label>684</span><small>HORAS</small></strong>
                             <i></i><i></i><i></i>
                         </div>
+                    </section>
+                    <section class="dashboard-card evolution-card">
+                        <div class="card-heading">
+                            <div>
+                                <p>EVOLUCIÓN DEL VOLUNTARIADO</p>
+                                <h3>Horas aportadas</h3>
+                            </div>
+                            <span data-impact-period-label>Por año</span>
+                        </div>
+                        <div class="evolution-chart" data-impact-bars></div>
                     </section>
                     <section class="dashboard-card">
                         <div class="card-heading">
@@ -526,9 +561,9 @@
                             </div>
                         </div>
                         <div class="horizontal-chart">
-                            @foreach ([['Diseño', 82], ['Tecnología', 68], ['Comunicación', 91], ['Datos', 54]] as [$label, $value])
-                                <div>
-                                    <span>{{ $label }}</span>
+                            @foreach ([['Diseño', 82], ['Tecnología', 68], ['Comunicación', 91], ['Datos', 54]] as [$area, $value])
+                                <div data-impact-area>
+                                    <span>{{ $area }}</span>
                                     <i><b style="width: {{ $value }}%"></b></i>
                                     <em>{{ $value }}%</em>
                                 </div>
@@ -543,13 +578,27 @@
                             </div>
                         </div>
                         <p>Puntualidad, calidad técnica y actitud.</p>
+                        <div class="review-selects">
+                            <select data-review-volunteer aria-label="Voluntario a evaluar">
+                                <option value="">Elegir voluntario…</option>
+                                @foreach ($talentos as $talento)
+                                    <option value="{{ $talento['name'] }}">{{ $talento['name'] }} · {{ $talento['career'] }}</option>
+                                @endforeach
+                            </select>
+                            <select data-review-project aria-label="Proyecto finalizado">
+                                <option value="">Elegir proyecto…</option>
+                                @foreach ($proyectos as $proyecto)
+                                    <option value="{{ $proyecto['title'] }}">{{ $proyecto['title'] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div class="stars">
                             @for ($star = 1; $star <= 5; $star++)
                                 <button type="button" data-star aria-label="{{ $star }} estrellas">★</button>
                             @endfor
                         </div>
                         <textarea placeholder="Escribe una recomendación para su portafolio..."></textarea>
-                        <button type="button" data-toast-msg="Evaluación publicada en el perfil">
+                        <button type="button" data-review-publish>
                             Publicar evaluación
                         </button>
                     </section>
