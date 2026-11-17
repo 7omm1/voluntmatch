@@ -66,12 +66,6 @@
                 <p class="form-note">
                     Al continuar aceptas nuestros términos y nuestra política de privacidad.
                 </p>
-
-                <div class="demo-credentials" aria-label="Credenciales de la cuenta administradora">
-                    <span>ACCESO ADMINISTRADOR (SOLO DEMO)</span>
-                    <code title="Correo del administrador">admin@voluntmatch.org</code>
-                    <code title="Contraseña del administrador">REDACTED</code>
-                </div>
             </div>
         </div>
     </div>

@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -16,13 +15,9 @@ return new class extends Migration
             $table->string('role')->default('voluntario')->after('password');
         });
 
-        // Cuenta administradora del ecosistema VoluntMatch.
-        \App\Models\User::create([
-            'name' => 'Administración VoluntMatch',
-            'email' => 'admin@voluntmatch.org',
-            'password' => Hash::make('REDACTED'),
-            'role' => 'admin',
-        ]);
+        // La cuenta administradora no se crea aqui: lo hace
+        // database/seeders/AdminSeeder.php con credenciales del .env
+        // (ADMIN_EMAIL y ADMIN_PASSWORD), nunca con una contrasenia fija.
     }
 
     /**
@@ -33,7 +28,5 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn('role');
         });
-
-        \App\Models\User::where('email', 'admin@voluntmatch.org')->delete();
     }
 };

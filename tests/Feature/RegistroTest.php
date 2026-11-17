@@ -14,7 +14,11 @@ class RegistroTest extends TestCase
     {
         $this->get('/registro-voluntario')->assertOk()->assertSee('DNI')->assertSee('ONG');
         $this->get('/registro-organizacion')->assertOk()->assertSee('RUC')->assertSee('Estudiante');
-        $this->get('/login')->assertOk()->assertSee('admin@voluntmatch.org');
+        // Las credenciales del admin nunca deben aparecer en la interfaz.
+        $login = $this->get('/login');
+        $login->assertOk();
+        $login->assertDontSee('REDACTED');
+        $login->assertDontSee('admin@voluntmatch.org');
     }
 
     public function test_registro_de_estudiante_crea_rol_voluntario(): void

@@ -1475,25 +1475,6 @@ footer {
   background: white;
   box-shadow: 0 3px 10px rgba(25, 50, 52, 0.08);
 }
-.demo-credentials {
-  margin-top: 14px;
-  padding: 12px 14px;
-  border: 1px dashed #cbc9c2;
-  border-radius: 11px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5px 10px;
-  color: #929995;
-  background: #f0eee8;
-}
-.demo-credentials span {
-  grid-column: 1/-1;
-  font-size: 8px;
-  letter-spacing: 0.15em;
-}
-.demo-credentials code {
-  font-size: 11px;
-}
 .auth-modal form {
   margin-top: 18px;
   display: grid;
@@ -5156,18 +5137,6 @@ footer {
 }
 .auth-back:hover {
   color: var(--coral-dark);
-}
-.demo-credentials {
-  opacity: 0.45;
-  transition: opacity 0.2s;
-}
-.demo-credentials:hover,
-.demo-credentials:focus-within {
-  opacity: 0.9;
-}
-.demo-credentials code {
-  cursor: text;
-  user-select: all;
 }
 @media (max-width: 620px) {
   .form-grid,

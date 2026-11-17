@@ -56,12 +56,9 @@ La tabla `users` tiene una columna `role` con tres valores:
 - `organizacion` (ONG: se asigna al registrarse desde `/registro-organizacion`)
 - `admin` (cuenta creada por la migracion `2026_11_15_000001`, no se registra desde la web)
 
-Tras iniciar sesion, la ruta `/home` despacha segun el rol: cada rol cae en su propio panel privado. Las credenciales de la cuenta administradora se muestran al pie del formulario de login en texto gris tenue (se puede copiar y pegar).
+Tras iniciar sesion, la ruta `/home` despacha segun el rol: cada rol cae en su propio panel privado.
 
-Credenciales de administrador:
-
-- Correo: `admin@voluntmatch.org`
-- Contrasenia: `REDACTED`
+La cuenta administradora **no** existe de fabrica y sus credenciales nunca viven en el codigo: se crea con el seeder `AdminSeeder` leyendo `ADMIN_EMAIL` y `ADMIN_PASSWORD` desde tu `.env` (ver "Como correr el proyecto"). No uses la contrasenia de demo en ningun despliegue real ni la reutilices en otro sitio.
 
 ### Datos de registro (Peru)
 
@@ -121,13 +118,22 @@ Pestanas:
 
 ## Como correr el proyecto
 
+Requisitos: PHP >= 8.2 con las extensiones usuales de Laravel (pdo_sqlite o pdo_mysql) y Composer. No se necesita Node/npm.
+
 ```bash
 composer install
-cp .env.example .env      # configurar DB en .env
+cp .env.example .env      # configurar la base de datos en .env (ver abajo)
 php artisan key:generate
-php artisan migrate       # crea tablas y la cuenta admin
+php artisan migrate       # crea las tablas
+php artisan db:seed       # crea la cuenta admin leyendo ADMIN_EMAIL y ADMIN_PASSWORD del .env
 php artisan serve
 ```
+
+Base de datos:
+
+- Por defecto `.env.example` usa `DB_CONNECTION=sqlite` y funciona sin configurar nada mas.
+- Para MySQL: crea una base vacia (`CREATE DATABASE voluntmatch;`) y define en `.env` las variables `DB_CONNECTION=mysql`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME` y `DB_PASSWORD`. `APP_LOCALE=es` ya viene configurado.
+- Define en `.env` las credenciales del admin antes del `db:seed`: `ADMIN_EMAIL` y `ADMIN_PASSWORD` (una contrasenia larga y unica; si la dejas vacia, el seeder genera una aleatoria y la muestra por consola una sola vez).
 
 ## Notas de implementacion para quien mantenga el codigo
 
