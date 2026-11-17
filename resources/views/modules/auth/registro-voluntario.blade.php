@@ -37,7 +37,7 @@
 
                 <div class="role-tabs" aria-label="Seleccionar tipo de usuario">
                     <button type="button" class="active">Estudiante</button>
-                    <a href="{{ route('registro-organizacion') }}">ONG</a>
+                    <a href="{{ route('registro-organizacion') }}" data-ngo-modal-open>ONG</a>
                 </div>
 
                 @if (session('success'))
@@ -69,7 +69,7 @@
                         </button>
                     </div>
 
-                    <section class="form-step" data-step="1">
+                    <section class="form-step {{ $abrirPaso2 ? '' : 'active' }}" data-step="1">
                         <div class="form-grid">
                             <label>
                                 Nombre completo
@@ -104,7 +104,7 @@
                         <p class="form-note">Tu cuenta en 30 segundos. El perfil lo completas cuando quieras.</p>
                     </section>
 
-                    <section class="form-step" data-step="2" hidden>
+                    <section class="form-step {{ $abrirPaso2 ? 'active' : '' }}" data-step="2">
                         <p class="form-hint">
                             <x-icon name="spark" :size="14" />
                             Opcionales, pero son los datos con los que calculamos tu porcentaje de perfil y

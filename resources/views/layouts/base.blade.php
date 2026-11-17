@@ -11,6 +11,9 @@
                 document.documentElement.classList.add('dark');
             }
         } catch (e) {}
+        // Permite ocultar los pasos con CSS solo cuando JavaScript está activo:
+        // sin JS ambos pasos quedan visibles y el formulario sigue siendo usable.
+        document.documentElement.classList.add('js');
     </script>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     {{-- JS dividido por responsabilidad, sin build: se cargan en orden con defer.
@@ -21,6 +24,8 @@
     <script src="{{ asset('js/site/cursor.js') }}" defer></script>
     <script src="{{ asset('js/site/hero.js') }}" defer></script>
     <script src="{{ asset('js/site/toasts.js') }}" defer></script>
+    <script src="{{ asset('js/site/form-steps.js') }}" defer></script>
+    <script src="{{ asset('js/site/registro-ong.js') }}" defer></script>
     <script src="{{ asset('js/dashboard/navegacion.js') }}" defer></script>
     <script src="{{ asset('js/dashboard/proyecto-modal.js') }}" defer></script>
     <script src="{{ asset('js/dashboard/voluntario.js') }}" defer></script>
@@ -35,5 +40,12 @@
     <div class="app-shell">
         @yield('content')
     </div>
+
+    {{-- Registro de ONG en ventana: disponible en cualquier página pública. --}}
+    @guest
+        @unless (request()->routeIs('registro-organizacion'))
+            @include('partials.registro-ong-modal')
+        @endunless
+    @endguest
 </body>
 </html>

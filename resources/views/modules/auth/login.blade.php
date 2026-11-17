@@ -63,6 +63,11 @@
                     </button>
                 </form>
 
+                <p class="auth-ngo-invite">
+                    ¿Tienes una ONG?
+                    <a href="{{ route('registro-organizacion') }}" data-ngo-modal-open>Registra tu organización</a>
+                </p>
+
                 <p class="form-note">
                     Al continuar aceptas nuestros términos y nuestra
                     <a href="{{ route('privacidad') }}">política de privacidad</a>.

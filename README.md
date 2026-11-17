@@ -68,12 +68,13 @@ voluntmatch/
 ├── public/
 │   ├── css/app.css                       # todo el estilo del sitio y de los dashboards (CSS plano)
 │   └── js/
-│       ├── site/                          # tema, menu movil, reveal, cursor, hero slider y toasts
+│       ├── site/                          # tema, menu movil, reveal, cursor, hero, toasts,
+│       │                                  # formularios por pasos y ventana de registro de ONG
 │       └── dashboard/                     # paneles: navegacion, modal de proyecto, voluntario,
 │                                          # chat, talento, admin, proyectos ONG, inbox y metricas
 ├── resources/views/
 │   ├── layouts/base.blade.php            # plantilla base (head, tema claro/oscuro, scripts)
-│   ├── partials/                         # header.blade.php y footer.blade.php reutilizables
+│   ├── partials/                         # header, footer, formulario-ong y registro-ong-modal
 │   ├── components/icon.blade.php         # markup del componente de iconos
 │   ├── index.blade.php                   # landing publica
 │   ├── oportunidades.blade.php           # listado publico de oportunidades
@@ -114,7 +115,9 @@ La cuenta administradora **no** existe de fabrica y sus credenciales nunca viven
 Cada formulario tiene su propia ruta y el rol lo fija el controlador. Los catalogos de opciones viven en `app/Support/Peru.php` (regiones, ciclos, disponibilidad, causas, tipos de organizacion, sectores y universidades).
 
 - Estudiante: nombre completo, DNI (8 digitos, unico), celular peruano (9 digitos que empieza con 9), correo, region, ciudad/distrito, universidad o instituto, carrera, ciclo/grado, disponibilidad semanal y causas de interes (hasta 6).
-- ONG: nombre de la organizacion, RUC (11 digitos, prefijo 10/15/17/20, unico y con digito verificador valido), tipo de organizacion, representante legal, celular, correo institucional, region, ciudad/distrito, direccion, sitio web opcional, causa/sector principal y mision.
+- ONG: el registro pide solo lo esencial en dos pasos: nombre, RUC (11 digitos, prefijo 10/15/17/20, unico y con digito verificador valido), causa/sector, region, celular, correo institucional y contrasenia. Tipo de organizacion, representante legal, direccion, sitio web y mision son opcionales y viven en un apartado plegable del primer paso. La ventana de registro se abre sobre cualquier pagina publica (enlaces "Registrar ONG", hero y footer) sin salir de la pagina; `/registro-organizacion` sigue disponible como respaldo sin JavaScript.
+
+El sitio y los paneles se adaptan a movil (desde 320 px), tableta y escritorio: rejillas fluidas, formularios de una columna en pantallas pequenas, ventana de registro tipo hoja inferior, y tablas/listas que se reorganizan en vertical.
 
 Los mensajes de validacion estan en espanol en `lang/es/validation.php` (`APP_LOCALE=es`).
 
@@ -125,7 +128,7 @@ Los mensajes de validacion estan en espanol en `lang/es/validation.php` (`APP_LO
 - `/detalle-oportunidad/{slug}` (`detalle-oportunidad.blade.php`): ficha completa de una oportunidad con postulacion. La ruta usa route model binding por `slug`, no el id secuencial.
 - `/contacto` (`contacto.blade.php`): formulario de contacto con validacion.
 - `/politica-privacidad` (`pages/privacidad.blade.php`): tratamiento de datos personales (Ley 29733).
-- `/login`, `/registro-voluntario`, `/registro-organizacion` (`modules/auth/*`): acceso y altas. Cada formulario envia a su propia ruta (`POST /registro-voluntario` y `POST /registro-organizacion`) y el rol lo fija el controlador segun la ruta.
+- `/login`, `/registro-voluntario`, `/registro-organizacion` (`modules/auth/*`): acceso y altas. Cada formulario envia a su propia ruta (`POST /registro-voluntario` y `POST /registro-organizacion`) y el rol lo fija el controlador segun la ruta. El registro de ONG tambien se abre en una ventana sobre cualquier pagina publica (enlace `#registro-ong`) y conserva `/registro-organizacion` como alternativa sin JavaScript.
 
 ## Panel del voluntario
 
@@ -171,6 +174,8 @@ Pestanas:
 | Modulo | Estado |
 | --- | --- |
 | Registro de voluntario y ONG con validacion peruana (DNI, celular, RUC con digito verificador) | Funciona (persiste en BD) |
+| Registro de ONG en ventana y en dos pasos, disponible desde la landing y el resto de paginas publicas | Funciona |
+| Diseno adaptable a movil, tableta y escritorio (320 px en adelante) | Funciona |
 | Login por rol, logout, limitador de intentos y sesiones | Funciona |
 | Paneles privados con middleware de rol | Funciona |
 | Perfil y skills del voluntario (`/perfil`, `/perfil/skills`) | Funciona (persiste en BD) |
@@ -209,7 +214,7 @@ composer install
 php artisan test          # o: ./vendor/bin/phpunit
 ```
 
-La suite cubre: registro por rol (incluido el intento de colar `role=admin`), validacion de DNI y RUC con digito verificador, acceso a los paneles por rol, limitador de intentos del login, el seeder del admin, el seeder de oportunidades y la postulacion persistente a oportunidades.
+La suite cubre: registro por rol (incluido el intento de colar `role=admin`), registro de ONG con datos minimos y ventana publica, bolsa de errores independiente para ONG, validacion de DNI y RUC con digito verificador, acceso a los paneles por rol, limitador de intentos del login, el seeder del admin, el seeder de oportunidades y la postulacion persistente a oportunidades.
 
 ## Roadmap
 

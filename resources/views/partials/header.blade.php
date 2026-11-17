@@ -16,6 +16,11 @@
             <a href="{{ route('oportunidades', ['tab' => 'participate']) }}">Cómo participar</a>
             <a href="{{ route('oportunidades', ['tab' => 'organizations']) }}">Para ONG</a>
             <a href="{{ route('index') }}#impacto">Impacto</a>
+            @guest
+                <a class="nav-ngo-link" href="{{ route('registro-organizacion') }}" data-ngo-modal-open>
+                    Registrar ONG <x-icon name="arrow" :size="15" />
+                </a>
+            @endguest
         </nav>
         <div class="nav-mega">
             <span>DESCUBRE VOLUNTMATCH</span>
@@ -28,6 +33,11 @@
             <a href="{{ route('oportunidades', ['tab' => 'organizations']) }}">
                 <b>03</b> Soluciones para ONG <x-icon name="arrow" />
             </a>
+            @guest
+                <a href="{{ route('registro-organizacion') }}" data-ngo-modal-open>
+                    <b>04</b> Registrar mi ONG <x-icon name="arrow" />
+                </a>
+            @endguest
         </div>
     </div>
 
@@ -57,6 +67,10 @@
         <a href="{{ route('oportunidades') }}">Ver oportunidades</a>
         <a href="{{ route('oportunidades', ['tab' => 'participate']) }}">Cómo participar</a>
         <a href="{{ route('oportunidades', ['tab' => 'organizations']) }}">Para ONG</a>
+        @guest
+            <a href="{{ route('registro-voluntario') }}">Crear cuenta de estudiante</a>
+            <a href="{{ route('registro-organizacion') }}" data-ngo-modal-open>Registrar mi ONG</a>
+        @endguest
         <a href="{{ auth()->check() ? route('home') : route('login') }}">
             {{ auth()->check() ? 'Mi espacio' : 'Iniciar sesión' }}
         </a>

@@ -360,7 +360,7 @@ video {
 }
 .nav-mega {
   position: absolute;
-  top: 72px;
+  top: 100%;
   left: 50%;
   width: min(700px, 80vw);
   padding: 24px;
@@ -6174,5 +6174,726 @@ footer {
   }
   .analytics-layout {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   REGISTRO DE ONG — VENTANA Y FORMULARIO EN 2 PASOS
+============================================================ */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Enlace de registro dentro de la navegación principal */
+.desktop-nav .nav-ngo-link {
+  padding: 10px 15px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: white;
+  background: var(--coral);
+  opacity: 1;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.desktop-nav .nav-ngo-link::after {
+  display: none;
+}
+.desktop-nav .nav-ngo-link:hover {
+  background: var(--coral-dark);
+  opacity: 1;
+}
+.nav-mega a {
+  padding: 13px 12px;
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  text-align: left;
+}
+.nav-mega a:hover {
+  background: color-mix(in srgb, var(--coral) 10%, transparent);
+}
+
+/* Las pestañas del panel usan enlaces: mismo aspecto que los botones */
+.panel-tabs a {
+  padding: 11px 18px;
+  border-radius: 10px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.panel-tabs a.active {
+  color: white;
+  background: var(--ink);
+}
+.panel-tabs a:hover {
+  color: var(--ink);
+}
+.panel-tabs a.active:hover {
+  color: white;
+}
+
+/* Enlaces de la portada que abren la ventana */
+.hero-ngo-link {
+  margin-top: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+}
+.hero-ngo-link span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: white;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  padding-bottom: 2px;
+}
+.hero-ngo-link:hover span {
+  color: var(--coral);
+  border-color: var(--coral);
+}
+.final-ngo-link {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 700;
+}
+.final-ngo-link:hover {
+  color: var(--coral-dark);
+}
+.panel-hero-cta {
+  margin-top: 24px;
+}
+.auth-ngo-invite {
+  margin-top: 15px;
+  text-align: center;
+  color: #7a8784;
+  font-size: 11px;
+  font-weight: 600;
+}
+.auth-ngo-invite a {
+  color: var(--coral-dark);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* La ventana reutiliza el estilo del modal de acceso */
+.ngo-modal-backdrop {
+  padding: clamp(12px, 4vh, 30px);
+}
+.ngo-modal {
+  width: min(680px, 100%);
+  padding: 34px 40px 30px;
+}
+.ngo-modal .auth-heading h2 {
+  font-size: clamp(24px, 3.4vw, 31px);
+}
+.ngo-modal-sub {
+  max-width: 430px;
+  margin: 9px auto 0;
+  color: #6f7f7c;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.ngo-modal .auth-back {
+  margin-top: 14px;
+}
+
+/* Pasos del formulario (también usado por el registro de estudiantes) */
+.step-track {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.step-dot {
+  flex: 1;
+  min-height: 44px;
+  padding: 8px 11px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #7a8584;
+  background: #efede6;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: left;
+  transition: background 0.2s, color 0.2s;
+}
+.step-dot i {
+  flex: 0 0 23px;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #7a8584;
+  background: white;
+  font: 800 10px "Manrope";
+  font-style: normal;
+}
+.step-dot span {
+  line-height: 1.25;
+}
+.step-dot.active {
+  color: #183337;
+  background: #fbe4df;
+}
+.step-dot.active i {
+  color: white;
+  background: var(--coral);
+}
+.step-dot.done i {
+  color: white;
+  background: #4b8178;
+}
+.form-step {
+  display: grid;
+  gap: 13px;
+}
+.form-step[hidden] {
+  display: none !important;
+}
+.js .form-step:not(.active) {
+  display: none !important;
+}
+.step-actions {
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.step-actions .jelly-button {
+  flex: 1;
+  margin-top: 0;
+}
+.ghost-button {
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px solid #dbd9d1;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: #4e6162;
+  font-size: 12px;
+  font-weight: 700;
+  background: transparent;
+}
+.ghost-button svg {
+  transform: rotate(180deg);
+}
+.ghost-button:hover {
+  border-color: #b9b6ac;
+  background: #f1efe8;
+}
+
+/* Campo de contraseña con botón Ver / Ocultar */
+.password-field {
+  position: relative;
+  display: block;
+}
+.password-field input {
+  padding-right: 66px;
+}
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  transform: translateY(-50%);
+  padding: 6px 9px;
+  border-radius: 8px;
+  color: #7a8784;
+  font-size: 10px;
+  font-weight: 800;
+}
+.password-toggle:hover {
+  color: #183337;
+  background: #efede6;
+}
+
+/* Mensajes por campo y ayudas */
+.field-error {
+  display: block;
+  margin-top: -2px;
+  color: #b3372d;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.auth-modal input[aria-invalid="true"],
+.auth-modal select[aria-invalid="true"] {
+  border-color: #e08a82;
+  background: #fff8f7;
+}
+.form-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #4e6162;
+  background: #eef3f1;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.form-hint svg {
+  flex: 0 0 14px;
+  margin-top: 1px;
+  color: #4b8178;
+}
+
+/* Datos opcionales plegados para no alargar el registro */
+.form-extra {
+  padding: 0 13px;
+  border: 1px dashed #d7d4cb;
+  border-radius: 12px;
+  background: #f8f6f0;
+}
+.form-extra summary {
+  padding: 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #4e6162;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.form-extra summary::-webkit-details-marker {
+  display: none;
+}
+.form-extra summary::after {
+  content: "+";
+  flex: 0 0 auto;
+  font: 800 16px/1 "Manrope";
+  color: var(--coral-dark);
+}
+.form-extra[open] summary::after {
+  content: "−";
+}
+.form-extra summary small {
+  color: #8c9693;
+  font-size: 10px;
+  font-weight: 500;
+}
+.form-extra-body {
+  padding: 2px 0 14px;
+}
+
+/* En pantallas pequeñas la ventana se pega a la parte inferior */
+@media (max-width: 640px) {
+  .ngo-modal-backdrop {
+    padding: 0;
+    align-items: end;
+  }
+  .ngo-modal {
+    width: 100%;
+    max-height: 93svh;
+    padding: 26px 18px calc(22px + env(safe-area-inset-bottom));
+    border-radius: 22px 22px 0 0;
+  }
+  .ngo-modal .modal-close {
+    top: 14px;
+    right: 14px;
+  }
+  .ngo-modal .auth-heading {
+    padding-right: 26px;
+  }
+  .ngo-modal .auth-heading h2 {
+    font-size: 24px;
+  }
+  .step-dot {
+    padding: 8px;
+    font-size: 9px;
+  }
+  .step-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+  .step-actions .jelly-button,
+  .step-actions .ghost-button {
+    width: 100%;
+  }
+}
+
+/* ============================================================
+   AJUSTES MULTIDISPOSITIVO (MÓVIL, TABLETA Y ESCRITORIO)
+============================================================ */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  overflow-x: clip;
+}
+
+/* Evita que Safari/iOS haga zoom al enfocar un campo */
+@media (max-width: 760px) {
+  .auth-modal input,
+  .auth-modal select,
+  .auth-modal textarea,
+  .contact-form input,
+  .contact-form textarea,
+  .contact-form select {
+    font-size: 16px;
+  }
+  .auth-modal label {
+    font-size: 12px;
+  }
+  .auth-page {
+    padding: 88px 14px 40px;
+  }
+  .auth-modal {
+    padding: 30px 18px;
+    border-radius: 20px;
+  }
+  .auth-page .auth-modal.wide {
+    width: 100%;
+  }
+  .policy-page {
+    margin: 24px 12px 50px;
+    padding: 26px 18px;
+  }
+  .panel-topbar {
+    padding: 0 14px;
+  }
+  .panel-close {
+    padding: 10px 12px;
+  }
+  .project-detail-content {
+    padding: 28px 20px 42px;
+  }
+  .opportunity-grid,
+  .participate-grid,
+  .ngo-panel-content {
+    width: calc(100% - 28px);
+  }
+  .footer-top {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .footer-bottom {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+/* Tableta: 2 columnas en rejillas de contenido */
+@media (min-width: 761px) and (max-width: 1180px) {
+  .desktop-nav {
+    gap: clamp(14px, 1.8vw, 28px);
+  }
+  .opportunity-grid,
+  .participate-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .footer-top {
+    grid-template-columns: 1.3fr 1fr 1fr;
+  }
+  .footer-designers {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 980px) {
+  .steps-grid {
+    grid-template-columns: 1fr;
+    max-width: 540px;
+    margin-inline: auto;
+  }
+  .step-visual {
+    max-width: 470px;
+    margin-inline: auto;
+  }
+  .manifesto-section {
+    grid-template-columns: 1fr;
+  }
+  .manifesto-image {
+    min-height: 420px;
+    margin: 28px 24px 0;
+  }
+  .manifesto-copy {
+    padding: 60px 32px 70px;
+  }
+  .cause-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cause-grid .cause-card:last-child {
+    grid-column: 1 / -1;
+    min-height: 190px;
+  }
+  .footer-top {
+    grid-template-columns: 1fr 1fr;
+  }
+  .footer-brand,
+  .footer-designers {
+    grid-column: 1 / -1;
+  }
+  .ngo-panel-content {
+    width: calc(100% - 48px);
+    grid-template-columns: 1fr;
+  }
+  .ngo-panel-content > button {
+    width: 100%;
+    justify-self: stretch;
+  }
+  .contact-layout {
+    padding-top: 96px;
+    grid-template-columns: 1fr;
+  }
+  .contact-form {
+    padding: 26px 20px;
+  }
+}
+
+/* Tableta: paneles y dashboards con más aire */
+@media (max-width: 1024px) and (min-width: 761px) {
+  .dashboard-shell {
+    grid-template-columns: 216px 1fr;
+  }
+  .dashboard-sidebar {
+    padding: 24px 14px;
+  }
+  .dashboard-main {
+    padding: 30px 24px;
+  }
+  .metric-grid,
+  .metric-grid-four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .overview-grid,
+  .skills-layout,
+  .analytics-layout,
+  .impact-dashboard {
+    grid-template-columns: 1fr;
+  }
+  .impact-hero-card {
+    grid-column: auto;
+    padding: 32px;
+  }
+  .messaging-layout {
+    grid-template-columns: 190px 1fr;
+  }
+}
+
+/* Móvil: listas de mensajes visibles como carrusel horizontal */
+@media (max-width: 760px) {
+  .messaging-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: calc(100svh - 120px);
+    min-height: 480px;
+  }
+  .conversation-list {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 1px solid #e1dfd8;
+    scrollbar-width: none;
+  }
+  .conversation-list::-webkit-scrollbar {
+    display: none;
+  }
+  .conversation-list .card-heading {
+    display: none;
+  }
+  .conversation-list > button {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 210px;
+    padding: 8px 10px;
+    background: #f3f1ea;
+  }
+  .chat-panel {
+    min-height: 0;
+  }
+  .chat-messages {
+    min-height: 0;
+  }
+  .dashboard-sidebar nav,
+  .panel-tabs,
+  .project-filters,
+  .talent-filters,
+  .impact-ranges {
+    scrollbar-width: none;
+  }
+  .dashboard-sidebar nav::-webkit-scrollbar,
+  .panel-tabs::-webkit-scrollbar,
+  .project-filters::-webkit-scrollbar,
+  .talent-filters::-webkit-scrollbar,
+  .impact-ranges::-webkit-scrollbar {
+    display: none;
+  }
+  .panel-tabs button,
+  .panel-tabs a,
+  .project-filters button {
+    flex: 0 0 auto;
+    padding: 10px 12px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .impact-toolbar {
+    align-items: stretch;
+  }
+}
+
+/* Refuerza el contraste del hero cuando el vídeo tiene fondos claros */
+.hero-overlay {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(7, 28, 32, 0.82) 0%,
+      rgba(7, 28, 32, 0.48) 48%,
+      rgba(7, 28, 32, 0.22) 100%
+    ),
+    linear-gradient(0deg, rgba(7, 28, 32, 0.56), transparent 52%);
+}
+@media (max-width: 760px) {
+  .hero {
+    height: auto;
+    min-height: 760px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ngo-modal,
+  .ngo-modal-backdrop,
+  .step-dot,
+  .password-toggle {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Teléfonos pequeños (320–380 px): cabecera compacta sin desbordes */
+@media (max-width: 380px) {
+  .site-header {
+    padding: 0 12px;
+  }
+  .brand {
+    gap: 8px;
+    font-size: 16px;
+    letter-spacing: 0.1em;
+  }
+  .brand-mark {
+    width: 25px;
+    height: 21px;
+  }
+  .header-actions {
+    gap: 8px;
+  }
+  .theme-button,
+  .mobile-menu-button {
+    width: 38px;
+    height: 38px;
+  }
+  .hero-content {
+    margin: 0 18px;
+  }
+  .hero h1 {
+    font-size: clamp(40px, 12.5vw, 56px);
+  }
+  .mobile-nav {
+    left: 8px;
+    right: 8px;
+  }
+  .ngo-modal {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}
+
+/* Marca compacta en la barra lateral de tabletas */
+@media (max-width: 1024px) and (min-width: 761px) {
+  .dashboard-sidebar .brand {
+    gap: 8px;
+    font-size: 16px;
+    letter-spacing: 0.07em;
+  }
+  .dashboard-sidebar .brand-mark {
+    width: 24px;
+    height: 20px;
+  }
+}
+
+/* Cabecera de los paneles en móvil: título arriba y acciones debajo */
+@media (max-width: 760px) {
+  .dashboard-top {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .dashboard-top > div:first-child {
+    flex: 1 1 100%;
+  }
+  .dashboard-top-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}
+
+/* Portátiles medianos: la navegación usa el menú "Explorar" antes de
+   apretarse y, por encima de 1180 px, reduce ligeramente sus espacios. */
+@media (max-width: 1180px) {
+  .desktop-nav {
+    display: none;
+  }
+  .nav-trigger {
+    display: flex;
+  }
+}
+@media (min-width: 1181px) and (max-width: 1360px) {
+  .site-header {
+    padding: 0 24px;
+  }
+  .brand {
+    font-size: 18px;
+    letter-spacing: 0.1em;
+  }
+  .desktop-nav {
+    gap: 16px;
+  }
+  .desktop-nav a {
+    font-size: 13px;
+  }
+  .desktop-nav .nav-ngo-link {
+    padding: 9px 12px;
+  }
+  .header-actions {
+    gap: 8px;
+  }
+  .text-button {
+    padding: 10px 4px;
+    font-size: 13px;
+  }
+  .jelly-button.small {
+    padding: 0 14px;
+  }
+}
+
+/* Campos de los paneles: 16 px en móvil para evitar el zoom de iOS */
+@media (max-width: 760px) {
+  .dashboard-main input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+  .dashboard-main select,
+  .dashboard-main textarea {
+    font-size: 16px;
   }
 }

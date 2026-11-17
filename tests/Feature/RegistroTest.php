@@ -79,6 +79,60 @@ class RegistroTest extends TestCase
         $this->actingAs($user)->get('/dashboard-organizacion')->assertOk();
     }
 
+    public function test_registro_de_ong_con_solo_los_datos_esenciales(): void
+    {
+        $respuesta = $this->post('/registro-organizacion', [
+            'name' => 'ONG Esencial',
+            'ruc' => '20123456786',
+            'sector' => 'Educación',
+            'region' => 'Lima',
+            'phone' => '987654321',
+            'email' => 'esencial@example.org',
+            'password' => 'secreto123',
+            'password_confirmation' => 'secreto123',
+            'terms' => '1',
+        ]);
+
+        $respuesta->assertRedirect(route('login'));
+
+        $user = User::where('email', 'esencial@example.org')->firstOrFail();
+        $this->assertSame('organizacion', $user->role);
+        $this->assertSame('Lima', $user->region);
+        $this->assertNull($user->legal_rep);
+    }
+
+    public function test_el_registro_de_ong_se_puede_abrir_en_una_ventana(): void
+    {
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('data-ngo-modal', false)
+            ->assertSee('data-ngo-modal-open', false)
+            ->assertSee('Registra tu ONG en 2 minutos');
+
+        $this->get('/oportunidades?tab=organizations')
+            ->assertOk()
+            ->assertSee('data-ngo-modal-open', false);
+    }
+
+    public function test_los_errores_de_ong_van_a_su_propia_bolsa(): void
+    {
+        $this->post('/registro-organizacion', [
+            'name' => 'ONG con RUC inválido',
+            'ruc' => '20123456789',
+            'sector' => 'Educación',
+            'region' => 'Lima',
+            'phone' => '987654321',
+            'email' => 'bolsa@example.org',
+            'password' => 'secreto123',
+            'password_confirmation' => 'secreto123',
+            'terms' => '1',
+            '_modal' => 'ong',
+        ])->assertSessionHasErrors(['ruc'], null, 'ong')
+            ->assertSessionHasInput('_modal', 'ong');
+
+        $this->assertSame([], session('errors')->getBag('default')->all());
+    }
+
     public function test_valida_dni_y_ruc_peruanos(): void
     {
         $this->post('/registro-voluntario', [
@@ -100,7 +154,7 @@ class RegistroTest extends TestCase
             'password' => 'secreto123',
             'password_confirmation' => 'secreto123',
             'terms' => '1',
-        ])->assertSessionHasErrors(['ruc']);
+        ])->assertSessionHasErrors(['ruc'], null, 'ong');
     }
 
     public function test_un_voluntario_no_entra_al_panel_de_ong(): void
@@ -141,6 +195,6 @@ class RegistroTest extends TestCase
             'password' => 'secreto123',
             'password_confirmation' => 'secreto123',
             'terms' => '1',
-        ])->assertSessionHasErrors(['ruc']);
+        ])->assertSessionHasErrors(['ruc'], null, 'ong');
     }
 }

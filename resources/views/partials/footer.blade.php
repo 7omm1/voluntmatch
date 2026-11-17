@@ -23,7 +23,9 @@
         <div class="footer-column">
             <b>PARA TI</b>
             <a href="{{ route('registro-voluntario') }}">Soy estudiante</a>
-            <a href="{{ route('registro-organizacion') }}">Soy una ONG</a>
+            @guest
+                <a href="{{ route('registro-organizacion') }}" data-ngo-modal-open>Soy una ONG</a>
+            @endguest
             <a href="{{ route('index') }}#nosotros">Sobre VoluntMatch</a>
         </div>
         <div class="footer-designers">

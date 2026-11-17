@@ -58,6 +58,11 @@
                     <span><x-icon name="play" :size="17" /></span> Descubre cómo funciona
                 </a>
             </div>
+            @guest
+                <a class="hero-ngo-link" href="{{ route('registro-organizacion') }}" data-ngo-modal-open>
+                    ¿Representas una ONG? <span>Regístrala aquí <x-icon name="arrow" :size="14" /></span>
+                </a>
+            @endguest
         </div>
         <div class="hero-controls">
             <button type="button" data-hero-play aria-label="Pausar video">
@@ -248,6 +253,11 @@
             <a class="jelly-button" href="{{ route('registro-voluntario') }}">
                 Crear mi perfil gratis <x-icon name="arrow" />
             </a>
+            @guest
+                <a class="final-ngo-link" href="{{ route('registro-organizacion') }}" data-ngo-modal-open>
+                    Soy una ONG y quiero registrar mi organización <x-icon name="arrow" :size="14" />
+                </a>
+            @endguest
             <small>Sin costes. Sin compromiso. Con mucho propósito.</small>
         </div>
     </section>

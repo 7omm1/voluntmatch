@@ -71,9 +71,14 @@ class AuthController extends Controller
             ? $this->reglasOrganizacion()
             : $this->reglasVoluntario();
 
-        $datos = $request->validate($rules + $this->camposComunes(), $this->mensajes());
+        // El registro de ONG usa su propia bolsa de errores para no mezclar
+        // sus mensajes con el formulario de estudiantes cuando la ventana
+        // de registro convive con la página de registro de voluntarios.
+        $datos = $role === 'organizacion'
+            ? $request->validateWithBag('ong', $rules + $this->camposComunes(), $this->mensajes())
+            : $request->validate($rules + $this->camposComunes(), $this->mensajes());
 
-        $user = new User();
+        $user = new User;
         $user->fill($datos);
         $user->role = $role;
         $user->city = $role === 'organizacion' ? ($datos['city'] ?? null) : null;
@@ -104,8 +109,10 @@ class AuthController extends Controller
     private function reglasOrganizacion(): array
     {
         return [
+            'phone' => 'required|string|regex:/^9\d{8}$/',
+            'region' => ['required', Rule::in(Peru::REGIONES)],
             'ruc' => [
-                'nullable',
+                'required',
                 'digits:11',
                 'regex:/^(10|15|17|20)\d{9}$/',
                 Rule::unique('users', 'ruc'),
@@ -121,7 +128,7 @@ class AuthController extends Controller
             'legal_rep' => 'nullable|string|max:150',
             'city' => 'nullable|string|max:100',
             'address' => 'nullable|string|max:255',
-            'sector' => ['nullable', Rule::in(Peru::SECTORES)],
+            'sector' => ['required', Rule::in(Peru::SECTORES)],
             'mission' => 'nullable|string|min:30|max:1000',
             'website' => 'nullable|string|max:255|url',
         ];
@@ -173,6 +180,7 @@ class AuthController extends Controller
 
         if (Auth::attempt($credenciales)) {
             $request->session()->regenerate();
+
             return redirect()->route('home');
         }
 
@@ -185,6 +193,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect()->route('index');
     }
 

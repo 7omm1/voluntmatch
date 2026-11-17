@@ -44,6 +44,12 @@
                     <p class="eyebrow dark-text"><span></span> VOLUNTMATCH PARA ORGANIZACIONES</p>
                     <h2>El talento que tu causa necesita.</h2>
                     <p>Publica necesidades concretas, encuentra perfiles comprometidos y sigue el impacto desde un único lugar.</p>
+                    @guest
+                        <a class="jelly-button panel-hero-cta" href="{{ route('registro-organizacion') }}"
+                            data-ngo-modal-open>
+                            Registrar mi ONG ahora <x-icon name="arrow" />
+                        </a>
+                    @endguest
                 @break
 
                 @default
@@ -122,9 +128,11 @@
                         @endforeach
                     </div>
                 </div>
-                <a class="jelly-button" href="{{ route('registro-organizacion') }}">
-                    Registrar mi organización <x-icon name="arrow" />
-                </a>
+                @guest
+                    <a class="jelly-button" href="{{ route('registro-organizacion') }}" data-ngo-modal-open>
+                        Registrar mi organización <x-icon name="arrow" />
+                    </a>
+                @endguest
             </div>
         @endif
     </div>
