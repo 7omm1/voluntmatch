@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Database\Seeders\AdminSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -30,8 +31,12 @@ class AccesoPorRolTest extends TestCase
     public function test_el_admin_accede_a_su_panel_pero_no_al_de_ong(): void
     {
         $_ENV['ADMIN_EMAIL'] = 'root@demo.org';
+
+        $_SERVER['ADMIN_EMAIL'] = 'root@demo.org';
         $_ENV['ADMIN_PASSWORD'] = 'clave-larga-de-demo-2026';
-        $this->seed(\Database\Seeders\AdminSeeder::class);
+
+        $_SERVER['ADMIN_PASSWORD'] = 'clave-larga-de-demo-2026';
+        $this->seed(AdminSeeder::class);
 
         $admin = User::where('email', 'root@demo.org')->firstOrFail();
 
@@ -48,7 +53,7 @@ class AccesoPorRolTest extends TestCase
 
     protected function tearDown(): void
     {
-        unset($_ENV['ADMIN_EMAIL'], $_ENV['ADMIN_PASSWORD']);
+        unset($_ENV['ADMIN_EMAIL'], $_ENV['ADMIN_PASSWORD'], $_SERVER['ADMIN_EMAIL'], $_SERVER['ADMIN_PASSWORD']);
         putenv('ADMIN_EMAIL');
         putenv('ADMIN_PASSWORD');
         parent::tearDown();
