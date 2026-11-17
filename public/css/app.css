@@ -5482,3 +5482,309 @@ footer {
   border-color: var(--line);
   color: var(--ink-soft);
 }
+
+/* ============================================================
+   DASHBOARD ONG — Match Inbox: lista, kanban y notas internas
+============================================================ */
+.inbox-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.inbox-actions > span {
+  padding: 7px 10px;
+  border-radius: 100px;
+  color: #a35951;
+  background: #f2dcd7;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.inbox-view-toggle {
+  padding: 3px;
+  border: 1px solid #deddd6;
+  border-radius: 999px;
+  background: #f1efe8;
+  display: inline-flex;
+}
+.inbox-view-toggle button {
+  padding: 6px 13px;
+  border: 0;
+  border-radius: 999px;
+  color: #657572;
+  font-size: 9px;
+  font-weight: 800;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.inbox-view-toggle button.active {
+  color: white;
+  background: #183b3f;
+}
+.candidate-project {
+  margin-top: 5px;
+  color: #327064;
+  font-weight: 800;
+}
+.candidate-stage {
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.candidate-stage[data-stage='por-revisar'] {
+  color: #657572;
+  background: #edeeea;
+}
+.candidate-stage[data-stage='entrevista'] {
+  color: #98702f;
+  background: #f3e8cf;
+}
+.candidate-stage[data-stage='aceptado'] {
+  color: #327064;
+  background: #d9eae5;
+}
+.candidate-stage[data-stage='rechazado'] {
+  color: #a04e48;
+  background: #f4dcd8;
+}
+.candidate-notes {
+  width: 100%;
+  padding: 10px 12px 12px;
+  border: 1px dashed #deddd6;
+  border-radius: 12px;
+  background: #f9f8f4;
+}
+.candidate-notes textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #dddcd5;
+  border-radius: 10px;
+  resize: none;
+  outline: none;
+  color: #183337;
+  background: white;
+  font-size: 10px;
+}
+.candidate-notes textarea:focus {
+  border-color: #183b3f;
+}
+.candidate-note-actions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+}
+.candidate-note-actions button {
+  padding: 8px 12px;
+  border: 1px solid #deddd6;
+  border-radius: 9px;
+  color: #183b3f;
+  background: white;
+  font-size: 9px;
+  font-weight: 800;
+}
+.candidate-note-actions button:hover {
+  background: #183b3f;
+  color: white;
+  border-color: #183b3f;
+}
+.candidate-row [data-candidate-notes-toggle].active {
+  color: #183b3f;
+  border-color: #183b3f;
+}
+.candidate-kanban {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.kanban-column {
+  padding: 10px;
+  border: 1px solid #e7e5de;
+  border-radius: 14px;
+  background: #f7f6f1;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.kanban-column header {
+  padding: 2px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.kanban-column header span {
+  color: #657572;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+.kanban-column header b {
+  min-width: 22px;
+  padding: 3px 7px;
+  border-radius: 100px;
+  background: white;
+  color: #183b3f;
+  font: 800 9px "Manrope";
+  text-align: center;
+}
+.kanban-cards {
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.kanban-card {
+  padding: 10px 11px;
+  border: 1px solid #e7e5de;
+  border-radius: 12px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.kanban-card b {
+  font-size: 11px;
+}
+.kanban-card[data-has-note] b::after {
+  content: ' ●';
+  color: #d95d52;
+  font-size: 8px;
+}
+.kanban-card small {
+  color: #7d8886;
+  font-size: 9px;
+}
+.kanban-card > span {
+  color: #327064;
+  font-size: 8px;
+  font-weight: 800;
+}
+.kanban-card-actions {
+  margin-top: 3px;
+  display: flex;
+  gap: 6px;
+}
+.kanban-card-actions button {
+  padding: 6px 8px;
+  border: 1px solid #deddd6;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  color: #657572;
+  font-size: 9px;
+}
+.kanban-card-actions button[data-candidate-move='prev'] svg {
+  transform: rotate(180deg);
+}
+.kanban-card-actions button:hover:not([hidden]) {
+  color: #183b3f;
+  border-color: #183b3f;
+}
+
+@media (max-width: 1080px) {
+  .candidate-kanban {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .candidate-kanban {
+    grid-template-columns: 1fr;
+  }
+  .inbox-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* ============================================================
+   MODO OSCURO — Match Inbox
+============================================================ */
+.dark .inbox-actions > span {
+  color: #f0b3a4;
+  background: rgba(217, 93, 82, 0.16);
+}
+.dark .inbox-view-toggle {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.06);
+}
+.dark .inbox-view-toggle button {
+  color: var(--ink-soft);
+}
+.dark .inbox-view-toggle button.active {
+  color: white;
+  background: #12454b;
+}
+.dark .candidate-project {
+  color: #8fd9c4;
+}
+.dark .candidate-stage[data-stage='por-revisar'] {
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.08);
+}
+.dark .candidate-stage[data-stage='entrevista'] {
+  color: #f0c56b;
+  background: rgba(240, 167, 66, 0.14);
+}
+.dark .candidate-stage[data-stage='aceptado'] {
+  color: #8fd9c4;
+  background: rgba(94, 197, 168, 0.14);
+}
+.dark .candidate-stage[data-stage='rechazado'] {
+  color: #f0b3a4;
+  background: rgba(217, 93, 82, 0.16);
+}
+.dark .candidate-notes {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.04);
+}
+.dark .candidate-notes textarea {
+  border-color: var(--line);
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.06);
+}
+.dark .candidate-notes textarea:focus {
+  border-color: var(--mint);
+}
+.dark .candidate-note-actions button {
+  border-color: var(--line);
+  color: var(--ink);
+  background: transparent;
+}
+.dark .candidate-note-actions button:hover {
+  color: white;
+  background: #12454b;
+  border-color: #12454b;
+}
+.dark .candidate-row [data-candidate-notes-toggle].active {
+  color: var(--ink);
+  border-color: var(--coral);
+}
+.dark .kanban-column {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.04);
+}
+.dark .kanban-column header span {
+  color: var(--ink-soft);
+}
+.dark .kanban-column header b {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.08);
+}
+.dark .kanban-card {
+  border-color: var(--line);
+  background: var(--card);
+}
+.dark .kanban-card small {
+  color: var(--ink-soft);
+}
+.dark .kanban-card > span {
+  color: #8fd9c4;
+}
+.dark .kanban-card-actions button {
+  border-color: var(--line);
+  color: var(--ink-soft);
+}
+.dark .kanban-card-actions button:hover:not([hidden]) {
+  color: var(--ink);
+  border-color: var(--coral);
+}

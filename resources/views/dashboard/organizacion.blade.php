@@ -387,6 +387,23 @@
             </div>
 
             {{-- CANDIDATOS --}}
+            @php
+                $inboxStages = [
+                    ['key' => 'por-revisar', 'label' => 'Por revisar'],
+                    ['key' => 'entrevista', 'label' => 'En entrevista'],
+                    ['key' => 'aceptado', 'label' => 'Aceptado'],
+                    ['key' => 'rechazado', 'label' => 'Rechazado'],
+                ];
+                $inboxStageLabel = function ($key) use ($inboxStages) {
+                    foreach ($inboxStages as $stage) {
+                        if ($stage['key'] === $key) {
+                            return $stage['label'];
+                        }
+                    }
+
+                    return $key;
+                };
+            @endphp
             <div data-panel="candidates" data-heading="Candidatos" hidden>
                 <section class="dashboard-card table-card">
                     <div class="card-heading">
@@ -394,24 +411,94 @@
                             <p>MATCH INBOX</p>
                             <h3>Candidatos por revisar</h3>
                         </div>
-                        <span>8 nuevos</span>
-                    </div>
-                    @foreach ($talentos as $talento)
-                        <div class="candidate-row">
-                            <img src="https://i.pravatar.cc/100?img={{ $talento['img'] }}" alt="" />
-                            <span>
-                                <b>{{ $talento['name'] }}</b>
-                                <small>{{ $talento['detail'] }} · {{ $talento['skills'][0] }}</small>
-                            </span>
-                            <em>{{ $talento['match'] }}% match</em>
-                            <button type="button" data-toast-msg="{{ $talento['name'] }} aceptado en el proyecto">
-                                <x-icon name="check" /> Aceptar
-                            </button>
-                            <button type="button" data-toast-msg="Perfil guardado para más tarde">
-                                Ver perfil
-                            </button>
+                        <div class="inbox-actions">
+                            <span data-inbox-new>0 por revisar</span>
+                            <div class="inbox-view-toggle">
+                                <button type="button" data-inbox-view="list" class="active">Lista</button>
+                                <button type="button" data-inbox-view="kanban">Kanban</button>
+                            </div>
                         </div>
-                    @endforeach
+                    </div>
+
+                    {{-- Vista lista: fila por candidato con acciones directas --}}
+                    <div data-inbox-list>
+                        @foreach ($talentos as $talento)
+                            <div class="candidate-item" data-candidate-item
+                                data-candidate="{{ $talento['name'] }}"
+                                data-project="{{ $talento['proyecto'] }}">
+                                <div class="candidate-row" data-candidate-row data-stage="{{ $talento['stage'] }}">
+                                    <img src="https://i.pravatar.cc/100?img={{ $talento['img'] }}" alt="" />
+                                    <span>
+                                        <b>{{ $talento['name'] }}</b>
+                                        <small>{{ $talento['detail'] }} · {{ $talento['skills'][0] }}</small>
+                                        <small class="candidate-project">Postula a: {{ $talento['proyecto'] }}</small>
+                                    </span>
+                                    <em>{{ $talento['match'] }}% match</em>
+                                    <span class="status candidate-stage" data-stage-badge
+                                        data-stage="{{ $talento['stage'] }}">{{ $inboxStageLabel($talento['stage']) }}</span>
+                                    <button type="button" data-candidate-accept>
+                                        <x-icon name="check" :size="11" /> Aceptar
+                                    </button>
+                                    <button type="button" data-candidate-reject>
+                                        <x-icon name="close" :size="11" /> Rechazar
+                                    </button>
+                                    <button type="button" data-candidate-notes-toggle aria-expanded="false">
+                                        <x-icon name="menu" :size="11" /> Nota
+                                    </button>
+                                    <button type="button" data-toast-msg="Perfil de {{ $talento['name'] }} — portafolio y LinkedIn muy pronto">
+                                        Ver perfil
+                                    </button>
+                                </div>
+                                {{-- Notas internas del equipo (se guardan en el navegador) --}}
+                                <div class="candidate-notes" data-candidate-notes hidden>
+                                    <textarea data-candidate-note-input rows="2"
+                                        placeholder="Nota interna sobre {{ $talento['name'] }} (solo la ve tu equipo)..."></textarea>
+                                    <div class="candidate-note-actions">
+                                        <button type="button" data-candidate-note-save>Guardar nota</button>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    {{-- Vista kanban: candidatos por etapa --}}
+                    <div class="candidate-kanban" data-inbox-kanban hidden>
+                        @foreach ($inboxStages as $stage)
+                            <div class="kanban-column" data-kanban-column="{{ $stage['key'] }}">
+                                <header>
+                                    <span>{{ $stage['label'] }}</span>
+                                    <b data-kanban-count>0</b>
+                                </header>
+                                <div class="kanban-cards" data-kanban-cards>
+                                    @foreach ($talentos as $talento)
+                                        @if ($talento['stage'] === $stage['key'])
+                                            <div class="kanban-card" data-candidate-card
+                                                data-candidate="{{ $talento['name'] }}"
+                                                data-stage="{{ $talento['stage'] }}">
+                                                <b>{{ $talento['name'] }}</b>
+                                                <small>{{ $talento['match'] }}% match · {{ $talento['skills'][0] }}</small>
+                                                <span>Postula a: {{ $talento['proyecto'] }}</span>
+                                                <div class="kanban-card-actions">
+                                                    <button type="button" data-candidate-move="prev"
+                                                        aria-label="Mover a la etapa anterior">
+                                                        <x-icon name="arrow" :size="12" />
+                                                    </button>
+                                                    <button type="button" data-candidate-notes-jump
+                                                        aria-label="Ver nota interna de {{ $talento['name'] }}">
+                                                        <x-icon name="menu" :size="12" />
+                                                    </button>
+                                                    <button type="button" data-candidate-move="next"
+                                                        aria-label="Mover a la etapa siguiente">
+                                                        <x-icon name="arrow" :size="12" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
                 </section>
             </div>
 

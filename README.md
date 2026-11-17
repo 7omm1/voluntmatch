@@ -102,7 +102,7 @@ Pestanas:
 1. Resumen: metricas de la ONG, actividad de proyectos y atajo para buscar talento.
 2. Oportunidades: gestion de proyectos publicados (crear, editar estado).
 3. Buscar talento: busqueda de voluntarios por habilidad.
-4. Candidatos: pipeline de postulaciones recibidas (revision, aceptacion, rechazo).
+4. Candidatos (Match Inbox): bandeja de postulaciones recibidas en vista lista o kanban, con etapas (por revisar, en entrevista, aceptado, rechazado), rechazo con mensaje automatico, proyecto al que postula cada candidato y notas internas del equipo.
 5. Metricas: impacto agregado de los proyectos de la organizacion.
 6. Mensajes: chat directo con voluntarios postulados.
 
@@ -134,6 +134,7 @@ php artisan serve
 - La navegacion entre pestanas de los tres dashboards no es rutas separadas: son divs con `data-panel` dentro de la misma vista, y `public/js/app.js` muestra/oculta segun el boton con `data-section`. El encabezado del panel (`data-dash-heading`) y la etiqueta superior se actualizan con JavaScript.
 - En el panel de la ONG, las fichas de proyecto se abren en un modal (`data-project-open` + `data-project-modal` en `public/js/app.js`), con acciones de ONG: editar proyecto y ver postulantes. El enlace "Ver ficha publica" lleva a `/detalle-oportunidad/{id}`.
 - Los avisos flotantes (toasts) se disparan con el atributo `data-toast-msg="texto"` en cualquier boton.
+- El Match Inbox del panel de la ONG (pestanas Candidatos) guarda las etapas y las notas internas de cada candidato en `localStorage` bajo la clave `voluntmatch-inbox`: los cambios sobreviven a recargas de pagina hasta que se borren los datos del navegador.
 - El tema oscuro se guarda en `localStorage` bajo la clave `voluntmatch-theme` (coordinado entre `layouts/base.blade.php` y `public/js/app.js`).
 - Las oportunidades que se muestran en la landing, los dashboards y las fichas provienen de `OportunidadController::demo()` (datos de ejemplo en memoria); la tabla `oportunidads` existe pero el contenido demo aun no esta migrado a ella.
 - Las marcas "nexo" antiguas fueron reemplazadas por "VoluntMatch" en todas las vistas, el footer y el JavaScript.

@@ -132,6 +132,7 @@ class DashboardController extends Controller
             'talentos' => [
                 // TODO: reemplazar por User::where('role', 'voluntario') con
                 // cálculo de afinidad y disponibilidad desde el perfil.
+                // 'stage' = etapa del Match Inbox: por-revisar | entrevista | aceptado | rechazado
                 [
                     'name' => 'Sofía Martín',
                     'career' => 'Diseño',
@@ -140,6 +141,8 @@ class DashboardController extends Controller
                     'match' => 96,
                     'img' => 47,
                     'hours' => 8,
+                    'proyecto' => 'Rediseño web accesible',
+                    'stage' => 'entrevista',
                 ],
                 [
                     'name' => 'Álvaro Vega',
@@ -149,6 +152,8 @@ class DashboardController extends Controller
                     'match' => 92,
                     'img' => 12,
                     'hours' => 10,
+                    'proyecto' => 'Rediseño web accesible',
+                    'stage' => 'por-revisar',
                 ],
                 [
                     'name' => 'Nora Campos',
@@ -158,6 +163,8 @@ class DashboardController extends Controller
                     'match' => 89,
                     'img' => 32,
                     'hours' => 5,
+                    'proyecto' => 'Campaña de educación rural',
+                    'stage' => 'aceptado',
                 ],
                 [
                     'name' => 'Leo Santos',
@@ -167,6 +174,8 @@ class DashboardController extends Controller
                     'match' => 87,
                     'img' => 11,
                     'hours' => 4,
+                    'proyecto' => 'Análisis de encuestas',
+                    'stage' => 'por-revisar',
                 ],
             ],
         ]);
