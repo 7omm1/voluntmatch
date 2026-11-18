@@ -1,5 +1,7 @@
 # VoluntMatch
 
+![Tests](https://github.com/7omm1/voluntmatch/actions/workflows/tests.yml/badge.svg)
+
 Plataforma web que conecta estudiantes (voluntarios) con organizaciones sociales que necesitan talento para sus proyectos. La idea central: una persona quiere aportar su vocacion y una ONG busca esa vocacion para su causa. VoluntMatch hace el match entre ambos y acompana la relacion hasta el cierre del proyecto.
 
 El proyecto esta construido sobre Laravel (aplicacion monolitica con Blade como capa de frontend). No es una SPA separada: cada pagina es una vista Blade servida por rutas web. Cada seccion de los paneles (resumen, matches, postulaciones, candidatos, metricas, etc.) tiene su propia URL y se renderiza en el servidor; la interactividad puntual (baraja de matches, kanban, chats, toasts, tema oscuro) vive en JavaScript vanilla sin build.
@@ -22,7 +24,7 @@ El proyecto esta construido sobre Laravel (aplicacion monolitica con Blade como 
 
 ## Stack
 
-- Laravel 11 (PHP >= 8.2) con Blade templates.
+- Laravel 13 (PHP >= 8.3) con Blade templates.
 - SQLite por defecto (listo para usar) o MySQL, configurable en `.env`.
 - CSS y JavaScript planos servidos directamente desde `public/css/app.css` y `public/js/`
   (dividido en modulos por responsabilidad en `js/site/` y `js/dashboard/`, sin build: se
@@ -359,16 +361,21 @@ por completo con `CHATBOT_ENABLED=false`.
 
 ## Como correr el proyecto
 
-Requisitos: PHP >= 8.2 con las extensiones usuales de Laravel (pdo_sqlite o pdo_mysql) y Composer. No se necesita Node/npm.
+Requisitos: PHP >= 8.3 con las extensiones usuales de Laravel (pdo_sqlite o pdo_mysql) y Composer. No se necesita Node/npm.
 
 ```bash
+git clone https://github.com/7omm1/voluntmatch.git
+cd voluntmatch
 composer install
-cp .env.example .env      # configurar la base de datos en .env (ver abajo)
+cp .env.example .env
+touch database/database.sqlite   # SQLite vacio para desarrollo
 php artisan key:generate
-php artisan migrate       # crea las tablas
-php artisan db:seed       # crea el admin, el catalogo demo, la comunidad y datos de moderacion
-php artisan serve
+php artisan migrate             # crea las tablas
+php artisan db:seed             # admin, catalogo demo, comunidad y datos de moderacion
+php artisan serve               # http://localhost:8000
 ```
+
+> Si prefieres automatizarlo, `composer setup` instala dependencias, crea `.env`, genera la clave, crea el archivo SQLite y migra. Después ejecuta `php artisan db:seed`.
 
 Base de datos:
 
