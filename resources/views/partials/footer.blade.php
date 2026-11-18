@@ -17,6 +17,7 @@
             <b>EXPLORA</b>
             <a href="{{ route('oportunidades', ['tab' => 'participate']) }}">Cómo funciona</a>
             <a href="{{ route('oportunidades') }}">Proyectos</a>
+            <a href="{{ route('ongs.index') }}">Directorio de ONGs</a>
             <a href="{{ route('index') }}#comunidad">Comunidad</a>
             <a href="{{ route('contacto') }}">Contacto</a>
         </div>

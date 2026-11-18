@@ -69,8 +69,14 @@
                 <a href="{{ route('admin.anuncios.index') }}" class="{{ request()->routeIs('admin.anuncios*') ? 'active' : '' }}">
                     <x-icon name="spark" /> <span>Anuncios</span>
                 </a>
+                <a href="{{ route('admin.integraciones') }}" class="{{ request()->routeIs('admin.integraciones*') ? 'active' : '' }}">
+                    <x-icon name="spark" /> <span>Integraciones</span>
+                </a>
                 <a href="{{ route('admin.analiticas') }}" class="{{ request()->routeIs('admin.analiticas') ? 'active' : '' }}">
                     <x-icon name="heart" /> <span>Analíticas</span>
+                </a>
+                <a href="{{ route('admin.asistente') }}" class="{{ request()->routeIs('admin.asistente') ? 'active' : '' }}">
+                    <x-icon name="chat" /> <span>Asistente</span>
                 </a>
                 <a href="{{ route('admin.configuracion') }}" class="{{ request()->routeIs('admin.configuracion*') ? 'active' : '' }}">
                     <x-icon name="check" /> <span>Configuración</span>

@@ -2,6 +2,16 @@
 
 @section('title', 'VoluntMatch — Tu talento tiene un lugar donde hacer match')
 
+@push('styles')
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+@endpush
+
+@push('scripts')
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+@endpush
+
 @section('main')
     {{-- HERO con slider de videos --}}
     <section class="hero" id="inicio">
@@ -59,8 +69,8 @@
                 </a>
             </div>
             @guest
-                <a class="hero-ngo-link" href="{{ route('registro-organizacion') }}" data-ngo-modal-open>
-                    ¿Representas una ONG? <span>Regístrala aquí <x-icon name="arrow" :size="14" /></span>
+                <a class="hero-ngo-link" href="{{ route('ongs.index') }}">
+                    ¿Buscas una ONG? <span>Explora el mapa de Cusco <x-icon name="arrow" :size="14" /></span>
                 </a>
             @endguest
         </div>
@@ -134,6 +144,68 @@
                 </div>
                 <h3>Crea impacto</h3>
                 <p>Colabora, aprende y construye experiencia mientras haces algo que importa.</p>
+            </div>
+        </div>
+    </section>
+
+    {{-- MAPA DE ONG DEL CUSCO --}}
+    <section class="map-section" id="ongs">
+        <div class="map-section-head reveal">
+            <div>
+                <p class="eyebrow dark-text"><span></span> LA RED QUE YA ESTÁ EN MARCHA</p>
+                <h2>
+                    Encuentra tu causa<br />
+                    <em>en el mapa.</em>
+                </h2>
+            </div>
+            <div class="map-section-copy">
+                <p>
+                    Recorre el Cusco y descubre dónde trabaja cada organización. Toca un punto para
+                    conocer su misión, cómo se organiza y qué proyectos tiene abiertos.
+                </p>
+                <div class="map-stats">
+                    <span><b>{{ $totalOngs }}</b> ONG verificadas</span>
+                    <span><b>{{ $totalOportunidades }}</b> oportunidades abiertas</span>
+                </div>
+                <a class="inline-link" href="{{ route('ongs.index') }}">
+                    Abrir el directorio completo <x-icon name="arrow" />
+                </a>
+            </div>
+        </div>
+
+        <div class="home-map-card reveal" data-ongs-explorer>
+            <div class="home-map-canvas" data-ongs-map data-center-lat="{{ $cusco['lat'] }}"
+                data-center-lng="{{ $cusco['lng'] }}" data-zoom="13">
+                <script type="application/json" data-ongs-markers>{!! json_encode($marcadores, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+                <p class="map-aviso">Cargando el mapa de Cusco…</p>
+            </div>
+            <div class="home-map-list">
+                <p class="map-list-title">ONGS EN EL CUSCO <span>{{ $ongsMapa->count() }}</span></p>
+                <div class="map-list-scroll">
+                    @forelse ($ongsMapa as $ong)
+                        <a class="home-map-ong" href="{{ $ong->urlPublica() }}" data-ong-item="{{ $ong->id }}"
+                            data-sector="{{ $ong->sector }}"
+                            data-search="{{ mb_strtolower($ong->nombre.' '.$ong->sector.' '.$ong->ciudad) }}">
+                            <span class="ong-avatar">
+                                @if ($ong->logo_url)
+                                    <img src="{{ $ong->logo_url }}" alt="" loading="lazy" />
+                                @else
+                                    <b>{{ $ong->iniciales() }}</b>
+                                @endif
+                            </span>
+                            <span class="home-map-ong-copy">
+                                <strong>{{ $ong->nombre }}</strong>
+                                <small>{{ $ong->sector }}{{ $ong->ciudad ? ' · '.$ong->ciudad : '' }}</small>
+                            </span>
+                            <x-icon name="arrow" :size="14" />
+                        </a>
+                    @empty
+                        <p class="map-list-empty">Aún no hay organizaciones con ubicación publicada.</p>
+                    @endforelse
+                </div>
+                <a class="map-list-all" href="{{ route('ongs.index') }}">
+                    Ver todas las ONG <x-icon name="arrow" :size="14" />
+                </a>
             </div>
         </div>
     </section>

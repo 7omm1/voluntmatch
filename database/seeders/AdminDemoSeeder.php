@@ -10,6 +10,7 @@ use App\Models\Reporte;
 use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 /**
  * Datos de demostracion para los modulos administrativos: fichas de ONG
@@ -35,6 +36,7 @@ class AdminDemoSeeder extends Seeder
             ->each(function (User $usuario) {
                 $usuario->organizacion()->create([
                     'nombre' => $usuario->name,
+                    'slug' => Str::slug($usuario->name),
                     'ruc' => $usuario->ruc,
                     'sector' => $usuario->sector,
                     'mision' => $usuario->mission,

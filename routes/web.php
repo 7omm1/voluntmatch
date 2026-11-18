@@ -3,15 +3,22 @@
 use App\Http\Controllers\Admin\ActividadController as AdminActividadController;
 use App\Http\Controllers\Admin\AnaliticaController as AdminAnaliticaController;
 use App\Http\Controllers\Admin\AnuncioController as AdminAnuncioController;
+use App\Http\Controllers\Admin\AsistenteController as AdminAsistenteController;
 use App\Http\Controllers\Admin\BusquedaController as AdminBusquedaController;
 use App\Http\Controllers\Admin\ConfiguracionController as AdminConfiguracionController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\IntegracionController as AdminIntegracionController;
 use App\Http\Controllers\Admin\OportunidadController as AdminOportunidadController;
 use App\Http\Controllers\Admin\OrganizacionController as AdminOrganizacionController;
 use App\Http\Controllers\Admin\ReporteController as AdminReporteController;
 use App\Http\Controllers\Admin\TicketController as AdminTicketController;
 use App\Http\Controllers\Admin\UsuarioController as AdminUsuarioController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CalendarFileController;
+use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\DirectorioOngController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\NotificacionController;
 use App\Http\Controllers\OportunidadController;
 use App\Http\Controllers\Panel\OngPanelController;
 use App\Http\Controllers\Panel\VoluntarioPanelController;
@@ -22,9 +29,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Páginas Públicas
-Route::get('/', function () {
-    return view('index');
-})->name('index');
+Route::get('/', [HomeController::class, 'index'])->name('index');
 
 Route::get('/contacto', function () {
     return view('contacto');
@@ -47,6 +52,31 @@ Route::post('/contacto', function (Request $request) {
 
 Route::get('/oportunidades', [OportunidadController::class, 'index'])->name('oportunidades');
 Route::get('/detalle-oportunidad/{oportunidad:slug}', [OportunidadController::class, 'show'])->name('detalle-oportunidad');
+
+// Directorio publico de ONG: mapa de Cusco y ficha de cada organizacion.
+Route::get('/ongs', [DirectorioOngController::class, 'index'])->name('ongs.index');
+Route::get('/ongs/{organizacion:slug}', [DirectorioOngController::class, 'show'])->name('ongs.show');
+
+// Asistente virtual: disponible para visitantes y cuentas autenticadas.
+// El rol, la conversación y los permisos se resuelven siempre en el servidor.
+Route::prefix('asistente')->name('chatbot.')->middleware('throttle:chatbot')->group(function () {
+    Route::post('/mensaje', [ChatbotController::class, 'mensaje'])->name('mensaje');
+    Route::get('/historial', [ChatbotController::class, 'historial'])->name('historial');
+    Route::post('/confirmar', [ChatbotController::class, 'confirmar'])->name('confirmar');
+    Route::post('/reiniciar', [ChatbotController::class, 'reiniciar'])->name('reiniciar');
+});
+
+// Invitaciones .ics generadas por el canal de calendario. La URL es firmada
+// y temporal: el archivo no se sirve públicamente.
+Route::get('/integraciones/calendario/{archivo}', [CalendarFileController::class, 'show'])
+    ->middleware('signed')
+    ->name('integraciones.calendario');
+
+// Bandeja interna de notificaciones.
+Route::middleware('auth')->group(function () {
+    Route::get('/notificaciones', [NotificacionController::class, 'index'])->name('notificaciones');
+    Route::post('/notificaciones/leidas', [NotificacionController::class, 'marcarTodas'])->name('notificaciones.leidas');
+});
 
 // Rutas de Autenticación (Solo Invitados)
 Route::middleware('guest')->group(function () {
@@ -93,6 +123,8 @@ Route::middleware(['auth', 'role:organizacion'])->prefix('panel-ong')->name('ong
     Route::patch('/candidatos/{postulacion}', [OngPanelController::class, 'actualizarCandidato'])->name('candidatos.actualizar');
     Route::get('/metricas', [OngPanelController::class, 'metricas'])->name('metricas');
     Route::get('/mensajes', [OngPanelController::class, 'mensajes'])->name('mensajes');
+    Route::get('/mi-ong', [OngPanelController::class, 'perfil'])->name('perfil');
+    Route::patch('/mi-ong', [OngPanelController::class, 'actualizarPerfil'])->name('perfil.update');
 });
 
 // Panel de administracion: cada modulo tiene su propia ruta y accion.
@@ -113,7 +145,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Verificacion de ONG.
     Route::get('/organizaciones', [AdminOrganizacionController::class, 'index'])->name('organizaciones.index');
     Route::get('/organizaciones/exportar', [AdminOrganizacionController::class, 'exportar'])->name('organizaciones.exportar');
-    Route::patch('/organizaciones/{organizacion}/revisar', [AdminOrganizacionController::class, 'revisar'])->name('organizaciones.revisar');
+    Route::patch('/organizaciones/{organizacion:id}/revisar', [AdminOrganizacionController::class, 'revisar'])->name('organizaciones.revisar');
 
     // Curaduria de oportunidades.
     Route::get('/oportunidades', [AdminOportunidadController::class, 'index'])->name('oportunidades.index');
@@ -141,6 +173,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Analiticas, configuracion y auditoria.
     Route::get('/analiticas', [AdminAnaliticaController::class, 'index'])->name('analiticas');
+    Route::get('/asistente', [AdminAsistenteController::class, 'index'])->name('asistente');
+
+    // Integraciones reales y clientes de la API/MCP.
+    Route::get('/integraciones', [AdminIntegracionController::class, 'index'])->name('integraciones');
+    Route::post('/integraciones/clientes', [AdminIntegracionController::class, 'storeClient'])->name('integraciones.clientes.store');
+    Route::patch('/integraciones/clientes/{client}/revocar', [AdminIntegracionController::class, 'revokeClient'])->name('integraciones.clientes.revoke');
+    Route::patch('/integraciones/contactos/{contact}', [AdminIntegracionController::class, 'updateContact'])->name('integraciones.contactos.update');
+    Route::post('/integraciones/probar', [AdminIntegracionController::class, 'test'])->name('integraciones.test');
+
     Route::get('/configuracion', [AdminConfiguracionController::class, 'index'])->name('configuracion');
     Route::patch('/configuracion', [AdminConfiguracionController::class, 'update'])->name('configuracion.update');
     Route::get('/actividad', [AdminActividadController::class, 'index'])->name('actividad');

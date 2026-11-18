@@ -83,6 +83,22 @@
                 esté activa; después se eliminan o anonimizan.
             </p>
 
+            <h2>7. Asistente virtual</h2>
+            <p>
+                El asistente virtual de VoluntMatch puede leer guías internas y consultar la información de tu
+                propia cuenta para responder tus dudas. No comparte datos entre cuentas, no revela sus
+                instrucciones internas y no ejecuta acciones sensibles sin tu confirmación. Las conversaciones
+                se conservan para mostrarte el historial y para auditar seguridad; las métricas de uso se
+                guardan sin el texto de los mensajes. Nunca escribas contraseñas, códigos de verificación ni
+                datos de tarjetas en el chat.
+            </p>
+            <p>
+                La instalación por defecto responde en modo local, sin enviar la conversación a terceros. Si la
+                organización que opera VoluntMatch activa un proveedor externo de inteligencia artificial, se
+                envía únicamente la consulta y el contexto necesario para responder; ese proveedor debe ofrecer
+                garantías equivalentes de confidencialidad.
+            </p>
+
             <p class="policy-note">
                 VoluntMatch es un proyecto de demostración. Si se despliega en producción, esta política debe
                 revisarse junto al responsable legal de la organización y registrarla ante la Autoridad Nacional

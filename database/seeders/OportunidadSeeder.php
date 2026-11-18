@@ -2,11 +2,12 @@
 
 namespace Database\Seeders;
 
-use App\Models\Organizacion;
 use App\Models\Oportunidad;
+use App\Models\Organizacion;
 use App\Support\OportunidadesDemo;
 use App\Support\Peru;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 /**
  * Siembra el catalogo de demostracion: tres ONG y diez oportunidades
@@ -26,8 +27,19 @@ class OportunidadSeeder extends Seeder
                 ['ruc' => $datos['ruc']],
                 [
                     'nombre' => $datos['nombre'],
+                    'slug' => Str::slug($datos['nombre']),
                     'sector' => $datos['sector'],
                     'mision' => $datos['mision'],
+                    'descripcion' => $datos['descripcion'] ?? null,
+                    'como_participar' => $datos['como_participar'] ?? null,
+                    'ciudad' => $datos['ciudad'] ?? null,
+                    'direccion' => $datos['direccion'] ?? null,
+                    'latitud' => $datos['latitud'] ?? null,
+                    'longitud' => $datos['longitud'] ?? null,
+                    'telefono' => $datos['telefono'] ?? null,
+                    'sitio_web' => $datos['sitio_web'] ?? null,
+                    'portada_url' => $datos['portada_url'] ?? null,
+                    'anio_fundacion' => $datos['anio_fundacion'] ?? null,
                     'verificada' => true,
                 ],
             );

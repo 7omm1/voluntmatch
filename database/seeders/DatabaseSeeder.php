@@ -23,7 +23,13 @@ class DatabaseSeeder extends Seeder
         // Varias ONG y estudiantes con perfiles y postulaciones reales.
         $this->call(ComunidadDemoSeeder::class);
 
+        // Red de ONG del Cusco para el directorio publico y el mapa.
+        $this->call(DirectorioCuscoSeeder::class);
+
         // Datos demo para los modulos del panel de administracion.
         $this->call(AdminDemoSeeder::class);
+
+        // Corpus del asistente virtual (RAG) y fragmentos indexados.
+        $this->call(ChatbotKnowledgeSeeder::class);
     }
 }

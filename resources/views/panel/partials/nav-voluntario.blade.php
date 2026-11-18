@@ -31,3 +31,11 @@
         <i>{{ $noLeidos }}</i>
     @endif
 </a>
+@php($avisosNuevos = auth()->user()->unreadNotifications()->count())
+<a href="{{ route('notificaciones') }}"
+    class="{{ request()->routeIs('notificaciones') ? 'active' : '' }}">
+    <x-icon name="spark" /> <span>Notificaciones</span>
+    @if ($avisosNuevos > 0)
+        <i>{{ $avisosNuevos }}</i>
+    @endif
+</a>

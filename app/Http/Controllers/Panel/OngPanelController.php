@@ -9,6 +9,7 @@ use App\Models\Organizacion;
 use App\Models\Postulacion;
 use App\Models\User;
 use App\Support\ChatDemo;
+use App\Support\Peru;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -86,6 +87,54 @@ class OngPanelController extends Controller
         return view('panel.organizacion.mensajes', $datos);
     }
 
+    /** Ficha publica de la ONG dentro del directorio y el mapa. */
+    public function perfil()
+    {
+        $datos = $this->contexto();
+        $datos['sectores'] = Peru::SECTORES;
+        $datos['cusco'] = ['lat' => -13.53195, 'lng' => -71.96746];
+
+        return view('panel.organizacion.perfil', $datos);
+    }
+
+    /** Guarda los datos que se muestran en /ongs/{slug}. */
+    public function actualizarPerfil(Request $request)
+    {
+        $organizacion = $this->ficha($request->user());
+
+        $datos = $request->validate([
+            'nombre' => ['required', 'string', 'max:255'],
+            'sector' => ['required', Rule::in(Peru::SECTORES)],
+            'mision' => ['nullable', 'string', 'min:30', 'max:1000'],
+            'descripcion' => ['nullable', 'string', 'max:3000'],
+            'como_participar' => ['nullable', 'string', 'max:2000'],
+            'ciudad' => ['nullable', 'string', 'max:100'],
+            'direccion' => ['nullable', 'string', 'max:255'],
+            'latitud' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitud' => ['nullable', 'numeric', 'between:-180,180'],
+            'telefono' => ['nullable', 'string', 'max:30'],
+            'sitio_web' => ['nullable', 'url', 'max:255'],
+            'logo_url' => ['nullable', 'url', 'max:255'],
+            'portada_url' => ['nullable', 'url', 'max:255'],
+            'anio_fundacion' => ['nullable', 'integer', 'between:1900,'.now()->year],
+        ], [
+            'nombre.required' => 'El nombre publico de la organizacion es obligatorio.',
+            'sector.required' => 'Selecciona la causa o sector principal.',
+            'sector.in' => 'Selecciona un sector valido.',
+            'mision.min' => 'La mision debe tener al menos 30 caracteres.',
+            'sitio_web.url' => 'El sitio web debe ser una direccion valida (ej. https://mi-ong.org).',
+            'logo_url.url' => 'El logo debe ser una URL valida.',
+            'portada_url.url' => 'La portada debe ser una URL valida.',
+            'latitud.between' => 'La latitud debe estar entre -90 y 90.',
+            'longitud.between' => 'La longitud debe estar entre -180 y 180.',
+            'anio_fundacion.between' => 'El anio de fundacion debe ser valido.',
+        ]);
+
+        $organizacion->update($datos);
+
+        return back()->with('status', 'Ficha publica actualizada. Tus cambios ya se ven en el directorio.');
+    }
+
     /**
      * Mueve una postulacion entre etapas o guarda una nota interna.
      * Solo la ONG duena de la oportunidad puede hacerlo.
@@ -121,7 +170,7 @@ class OngPanelController extends Controller
     /** Publica una nueva oportunidad desde el panel de la ONG. */
     public function guardarOportunidad(Request $request)
     {
-        $organizacion = $this->organizacion($request->user());
+        $organizacion = $this->ficha($request->user());
 
         $datos = $request->validate([
             'titulo' => ['required', 'string', 'max:255'],
@@ -156,7 +205,7 @@ class OngPanelController extends Controller
     private function contexto(): array
     {
         $user = auth()->user();
-        $organizacion = $this->organizacion($user);
+        $organizacion = $this->ficha($user);
 
         $oportunidades = $organizacion->oportunidades()
             ->withCount('postulaciones')
@@ -185,7 +234,7 @@ class OngPanelController extends Controller
     }
 
     /** Crea la ficha de organizacion si la cuenta aun no la tiene. */
-    private function organizacion(User $user): Organizacion
+    private function ficha(User $user): Organizacion
     {
         return $user->organizacion()->firstOrCreate([], [
             'nombre' => $user->name,

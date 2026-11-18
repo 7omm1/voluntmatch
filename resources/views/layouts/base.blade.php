@@ -17,6 +17,7 @@
         document.documentElement.classList.add('js');
     </script>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    @stack('styles')
     {{-- JS dividido por responsabilidad, sin build: se cargan en orden con defer.
          El orden importa: toasts.js declara showToast (global) que usan los demas. --}}
     <script src="{{ asset('js/site/theme.js') }}" defer></script>
@@ -27,6 +28,7 @@
     <script src="{{ asset('js/site/toasts.js') }}" defer></script>
     <script src="{{ asset('js/site/form-steps.js') }}" defer></script>
     <script src="{{ asset('js/site/registro-ong.js') }}" defer></script>
+    <script src="{{ asset('js/site/mapa-ongs.js') }}" defer></script>
     <script src="{{ asset('js/dashboard/proyecto-modal.js') }}" defer></script>
     <script src="{{ asset('js/dashboard/voluntario.js') }}" defer></script>
     <script src="{{ asset('js/dashboard/chat.js') }}" defer></script>
@@ -36,11 +38,16 @@
     <script src="{{ asset('js/dashboard/inbox.js') }}" defer></script>
     <script src="{{ asset('js/dashboard/metricas.js') }}" defer></script>
     <script src="{{ asset('js/dashboard/panel-nav.js') }}" defer></script>
+    <script src="{{ asset('js/site/chatbot.js') }}" defer></script>
 </head>
 <body>
     <div class="app-shell">
         @yield('content')
     </div>
+
+    @if (config('chatbot.enabled'))
+        @include('partials.chatbot')
+    @endif
 
     {{-- Registro de ONG en ventana: disponible en cualquier página pública. --}}
     @guest
@@ -48,5 +55,7 @@
             @include('partials.registro-ong-modal')
         @endunless
     @endguest
+
+    @stack('scripts')
 </body>
 </html>

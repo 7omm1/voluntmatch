@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\OportunidadesDemo;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 /**
  * Comunidad de demostracion: las tres ONG del catalogo, cada una con
@@ -64,8 +65,19 @@ class ComunidadDemoSeeder extends Seeder
                 [
                     'user_id' => $usuario->id,
                     'nombre' => $datos['nombre'],
+                    'slug' => Str::slug($datos['nombre']),
                     'sector' => $datos['sector'],
                     'mision' => $datos['mision'],
+                    'descripcion' => $datos['descripcion'] ?? null,
+                    'como_participar' => $datos['como_participar'] ?? null,
+                    'ciudad' => $datos['ciudad'] ?? null,
+                    'direccion' => $datos['direccion'] ?? null,
+                    'latitud' => $datos['latitud'] ?? null,
+                    'longitud' => $datos['longitud'] ?? null,
+                    'telefono' => $datos['telefono'] ?? null,
+                    'sitio_web' => $datos['sitio_web'] ?? null,
+                    'portada_url' => $datos['portada_url'] ?? null,
+                    'anio_fundacion' => $datos['anio_fundacion'] ?? null,
                     'verificada' => true,
                     'verificada_at' => now(),
                 ],

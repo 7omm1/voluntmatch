@@ -27,6 +27,8 @@ class Ticket extends Model
         'estado',
         'respuesta',
         'atendido_por',
+        'canal',
+        'external_ref',
     ];
 
     /** Usuario que abrio el caso. */

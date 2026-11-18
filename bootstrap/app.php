@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AuthenticateApiClient;
 use App\Http\Middleware\EnsureNotBlocked;
 use App\Http\Middleware\EnsureRole;
 use Illuminate\Foundation\Application;
@@ -10,12 +11,14 @@ use Illuminate\Http\Request;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => EnsureRole::class,
+            'api.client' => AuthenticateApiClient::class,
         ]);
 
         // Las cuentas suspendidas pierden el acceso en la siguiente peticion.
