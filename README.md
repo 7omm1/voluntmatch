@@ -64,8 +64,8 @@ voluntmatch/
 │   └── seeders/
 │       ├── DatabaseSeeder.php
 │       ├── AdminSeeder.php               # crea el admin con ADMIN_EMAIL / ADMIN_PASSWORD del .env
-│       ├── OportunidadSeeder.php         # siembra el catalogo demo en la tabla real `oportunidades`
-│       ├── ComunidadDemoSeeder.php       # 6 ONG y 14 estudiantes con postulaciones reales
+│       ├── OportunidadSeeder.php         # siembra el catalogo demo (3 ONG x 10 retos) en la tabla real `oportunidades`
+│       ├── ComunidadDemoSeeder.php       # 3 ONG y 14 estudiantes con postulaciones reales
 │       └── AdminDemoSeeder.php           # fichas de ONG, postulaciones, reportes, tickets y anuncios demo
 ├── lang/es/                              # mensajes de validacion en espanol
 ├── public/
@@ -145,9 +145,9 @@ Rutas bajo `/mi-espacio` (rol `voluntario`), cada seccion con su propia URL y vi
 | Ruta | Funcionalidad |
 | --- | --- |
 | `/home` o `/mi-espacio` | Mi resumen: metricas reales, matches recomendados y completitud de perfil. |
-| `/mi-espacio/skills` | Skills Passport: grafico radar y deslizadores; guarda en `users.skills`. |
-| `/mi-espacio/matches` | Baraja de oportunidades con encaje; deslizar a la derecha (o el boton) crea la postulacion real. Solo se mueve en horizontal. |
-| `/mi-espacio/postulaciones` | Seguimiento real de postulaciones con estados (en revision, en entrevista, aceptado, rechazado). |
+| `/mi-espacio/skills` | Skills Passport: mapa de fortalezas SVG que se actualiza en vivo con los deslizadores; cada ajuste suma al porcentaje del perfil y se guarda en `users.skills`. |
+| `/mi-espacio/matches` | Baraja de oportunidades con encaje; el panel derecho explica en detalle por qué encaja cada tarjeta y cambia al deslizar. La tarjeta abre una ventana con el detalle y la acción de postularse. |
+| `/mi-espacio/postulaciones` | Seguimiento real de postulaciones con estados (en revision, en entrevista, aceptado, rechazado). Cada fila abre una ventana con la línea de tiempo, la nota enviada y el acceso para completar el perfil. |
 | `/mi-espacio/impacto` | Horas estimadas a partir de los proyectos aceptados, insignias y constancias. |
 | `/mi-espacio/mensajes` | Chat con organizaciones (prototipo en memoria). |
 
@@ -195,7 +195,8 @@ secciones viven bajo el prefijo `/admin` y comparten la plantilla
 | Diseno adaptable a movil, tableta y escritorio (320 px en adelante) | Funciona |
 | Login por rol, logout, limitador de intentos y sesiones | Funciona |
 | Paneles privados con middleware de rol | Funciona |
-| Perfil y skills del voluntario (`/perfil`, `/perfil/skills`) | Funciona (persiste en BD) |
+| Perfil y skills del voluntario (`/perfil`, `/perfil/skills`) | Funciona (persiste en BD); la ventana «Completar perfil» del panel permite editar todos los datos sin salir de la seccion |
+| Navegacion entre modulos del panel | Funciona sin recargar en el espacio del voluntario (fetch + pushState) y con transicion de documento en los demas paneles; al refrescar se mantiene la seccion actual |
 | Politica de privacidad y consentimiento en el registro | Funciona (pagina estatica) |
 | Catalogo y fichas de oportunidades (`/oportunidades`, `/detalle-oportunidad/{slug}`) | Funciona: lee la tabla real `oportunidades` sembrada por `OportunidadSeeder`; si la BD esta vacia usa el catalogo de respaldo en `app/Support/OportunidadesDemo.php` |
 | Postularse desde la ficha o deslizando el match a la derecha | Funciona (persiste en `postulaciones`, una sola postulacion por voluntario y oportunidad) |
@@ -229,9 +230,9 @@ Base de datos:
 
 ### Cuentas demo
 
-`ComunidadDemoSeeder` crea 6 ONG y 14 estudiantes. Todas estas cuentas usan la contrasenia `password`; cambiala o no las uses fuera de desarrollo:
+`ComunidadDemoSeeder` crea 3 ONG —cada una con 10 oportunidades distintas— y 14 estudiantes. Todas estas cuentas usan la contrasenia `password`; cambiala o no las uses fuera de desarrollo:
 
-- ONG: `manos@voluntmatch.test`, `verde@voluntmatch.test`, `codigo@voluntmatch.test`, `casa@voluntmatch.test`, `salud@voluntmatch.test`, `cultura@voluntmatch.test`
+- ONG: `horizonte@voluntmatch.test`, `aula@voluntmatch.test`, `raiz@voluntmatch.test`
 - Estudiantes: `sofia@voluntmatch.test`, `alvaro@voluntmatch.test`, `nora@voluntmatch.test`, `leo@voluntmatch.test`, ... (mismo patron de correo)
 
 ## Pruebas
@@ -241,7 +242,7 @@ composer install
 php artisan test          # o: ./vendor/bin/phpunit
 ```
 
-La suite cubre: registro por rol (incluido el intento de colar `role=admin`), registro de ONG con datos minimos y ventana publica, bolsa de errores independiente para ONG, validacion de DNI y RUC con digito verificador, acceso a los paneles por rol, limitador de intentos del login, los seeders de admin, oportunidades y comunidad, la postulacion persistente (desde ficha y desde la baraja), las paginas de los paneles de estudiante y ONG, la gestion real del Match Inbox y el panel de administracion (suspension, roles, verificacion de ONG, curaduria, reportes, soporte, anuncios, configuracion y exportacion CSV).
+La suite cubre: registro por rol (incluido el intento de colar `role=admin`), registro de ONG con datos minimos y ventana publica, bolsa de errores independiente para ONG, validacion de DNI y RUC con digito verificador, acceso a los paneles por rol, limitador de intentos del login, los seeders de admin, oportunidades (3 ONG x 10 retos) y comunidad, la postulacion persistente (desde ficha y desde la baraja), las paginas de los paneles de estudiante y ONG, el mapa de fortalezas en vivo, las ventanas de postulacion y perfil, la gestion real del Match Inbox y el panel de administracion (suspension, roles, verificacion de ONG, curaduria, reportes, soporte, anuncios, configuracion y exportacion CSV).
 
 ## Roadmap
 
