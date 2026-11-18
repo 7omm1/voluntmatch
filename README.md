@@ -38,19 +38,23 @@ voluntmatch/
 ├── app/
 │   ├── Http/
 │   │   ├── Controllers/
+│   │   │   ├── Api/                        # API REST del asistente y servidor MCP
 │   │   │   ├── AuthController.php        # registro (rol fijado por ruta), login y logout
 │   │   │   ├── DashboardController.php   # paneles de organizacion y administrador
 │   │   │   ├── OportunidadController.php # listado y fichas de oportunidades
 │   │   │   ├── PostulacionController.php # POST /postular: persiste la postulacion del voluntario
 │   │   │   └── PerfilController.php      # actualizacion de perfil y skills del voluntario
 │   │   └── Middleware/
+│   │       ├── AuthenticateApiClient.php # token Bearer, rol, scopes y cuota por cliente
 │   │       └── EnsureRole.php            # middleware 'role:admin', 'role:organizacion', etc.
 │   ├── Models/
 │   │   ├── User.php                      # usuario con columna role: voluntario | organizacion | admin
 │   │   ├── Organizacion.php              # tabla `organizaciones`
 │   │   ├── Oportunidad.php               # tabla `oportunidades`
 │   │   └── Postulacion.php               # tabla `postulaciones` (una por voluntario y oportunidad)
-│   ├── Providers/AppServiceProvider.php  # limitador de intentos del login
+│   ├── Providers/AppServiceProvider.php  # limitador de intentos del login y del asistente
+│   ├── Services/Chatbot/                 # prompts, RAG, MCP, guardrails, router, cache y observabilidad
+│   ├── Services/Integrations/            # correo, calendario, CRM, mesa de ayuda y notificaciones
 │   ├── Support/
 │   │   ├── Peru.php                      # catalogos de Peru y validacion del RUC (modulo 11)
 │   │   ├── OportunidadesDemo.php         # catalogo demo de oportunidades (sembrado y respaldo)
@@ -91,6 +95,7 @@ voluntmatch/
 │                                         # organizaciones, oportunidades, reportes, tickets,
 │                                         # anuncios, analiticas, configuracion, busqueda y auditoria
 ├── routes/web.php                        # todas las rutas de la aplicacion
+├── routes/api.php                        # API v1 del asistente + servidor MCP
 ├── tests/                                # PHPUnit: registro, roles, throttle, RUC, slug y postulaciones
 └── composer.json
 ```
@@ -150,6 +155,7 @@ Rutas bajo `/mi-espacio` (rol `voluntario`), cada seccion con su propia URL y vi
 | `/mi-espacio/postulaciones` | Seguimiento real de postulaciones con estados (en revision, en entrevista, aceptado, rechazado). Cada fila abre una ventana con la línea de tiempo, la nota enviada y el acceso para completar el perfil. |
 | `/mi-espacio/impacto` | Horas estimadas a partir de los proyectos aceptados, insignias y constancias. |
 | `/mi-espacio/mensajes` | Chat con organizaciones (prototipo en memoria). |
+| `/notificaciones` | Bandeja interna con los avisos del equipo, cambios de postulación y mensajes de las integraciones. |
 
 ## Panel de la organizacion
 
@@ -182,9 +188,148 @@ secciones viven bajo el prefijo `/admin` y comparten la plantilla
 | `/admin/tickets` | Mesa de soporte: registrar casos, priorizar, responder, dejar en seguimiento y cerrar. |
 | `/admin/anuncios` | Comunicados para toda la comunidad, solo voluntarios o solo ONG; se muestran en los paneles de los usuarios. |
 | `/admin/analiticas` | Altas mensuales, causas y habilidades mas demandadas, regiones con mas voluntarios, estado de las postulaciones y tasa de aceptacion. |
+| `/admin/asistente` | Observabilidad del chatbot: consultas, latencia, cache, derivaciones, bloqueos de guardrail, uso de herramientas MCP y trazas recientes (sin texto de conversaciones). |
+| `/admin/integraciones` | Estado de correo, calendario, CRM, mesa de ayuda y notificaciones; bitácora de entregas; contactos del CRM local; emisión y revocación de tokens de API/MCP (el token se muestra una sola vez). |
 | `/admin/configuracion` | Pesos del algoritmo de matching y reglas de moderacion persistidas en `configuraciones`. |
 | `/admin/actividad` | Bitacora de auditoria con filtros por accion, entidad y administrador. |
 | `/admin/buscar?q=` | Busqueda global de cuentas, ONG, oportunidades, reportes y tickets. |
+
+## Asistente virtual (Vera)
+
+El sitio incluye un chatbot flotante disponible para visitantes y para las tres cuentas
+(voluntario, organizacion y administracion). Responde dudas, busca oportunidades, consulta
+datos de la cuenta autenticada y abre casos de soporte. Esta construido en capas para que
+cada control de seguridad sea verificable por separado.
+
+| Capa | Implementacion |
+| --- | --- |
+| **1. System prompt** | `resources/prompts/chatbot/system.md`, versionado en `config/chatbot.php` (`prompt.version`) e interpolado por `PromptBuilder`. Incluye jerarquia de instrucciones, limites y un canario interno que se comprueba en la salida. |
+| **2. RAG** | Documentos en `chatbot_knowledge_documents` con audiencias y fragmentos BM25 en `chatbot_knowledge_chunks`. `RagRetriever` filtra por rol, cachea el corpus por version y opcionalmente combina embeddings. Corpus inicial: `ChatbotKnowledgeSeeder`. |
+| **3. MCP** | `McpClient` implementa JSON-RPC/SSE (`initialize`, `tools/list`, `tools/call`). `McpManager` solo usa servidores declarados en configuracion y allowlists explicitas. Las herramientas locales (`ToolRegistry`) cubren busqueda, cuenta, ONG y soporte. |
+| **4. Accesos** | El rol se toma de la sesion, nunca del mensaje. `ToolRegistry` aplica la matriz por audiencia; `ToolExecutor` vuelve a comprobarla. Las consultas privadas se limitan por `user_id` de sesion, los ids de conversacion son UUID con `owner_key` y las escrituras exigen confirmacion de un solo uso. Limite por minuto/dia y CSRF en todos los endpoints. |
+| **5. Guardrails** | `GuardrailService` bloquea prompt injection, jailbreak y solicitudes ilegales; deriva autolesion; detecta PII sin bloquear; redacta logs; elimina HTML/secretos y comprueba el canario en la salida. |
+| **6. Cache** | `ResponseCache` solo cachea respuestas publicas de conocimiento (nunca datos de cuenta, herramientas ni confirmaciones). La clave incluye audiencia, versiones de prompt/conocimiento y modelo. El corpus RAG tambien se cachea por version. |
+| **7. Router** | `IntentRouter` clasifica saludos, FAQ, soporte, acciones y fuera de alcance con reglas deterministas; opcionalmente usa el modelo pequeno como desempate (`CHATBOT_ROUTER_LLM=true`). El router nunca autoriza herramientas. |
+| **8. Observabilidad** | `chatbot_traces` guarda intencion, ruta, modelo, cache, latencia, tokens, fuentes, herramientas y flags de guardrail; `chatbot_tool_calls` registra cada invocacion (incluidas denegadas). Logs estructurados con `request_id` y panel `/admin/asistente`. El texto de la conversacion se guarda aparte para el historial y se puede desactivar con `CHATBOT_STORE_CONTENT=false`. |
+
+### Integraciones del asistente
+
+Además del MCP de entrada (servidores remotos), Vera puede ejecutar acciones reales sobre cinco canales. Cada una deja una fila en `integration_deliveries`, exige confirmación cuando escribe y solo acepta destinos que el servidor autoriza.
+
+| Canal | Driver por defecto | Driver externo | Herramienta |
+| --- | --- | --- | --- |
+| Correo | `laravel` (usa `MAIL_*`: SMTP, Resend, Postmark…) | — | `enviar_correo` |
+| Calendario | `ics` (invitación `.ics` con URL firmada temporal) | `http` (Google Calendar, CalDAV o webhook propio) | `agendar_evento` |
+| CRM | `local` (tabla `crm_contacts` y espejo en el panel) | `http` (HubSpot, Pipedrive, Salesforce o webhook) | `registrar_contacto_crm` |
+| Mesa de ayuda | `local` (tickets internos con `canal`) | `http` (Zendesk, Freshdesk, GLPI…), sin dejar de crear el ticket local | `crear_ticket_soporte` |
+| Notificaciones | `database` (bandeja `/notificaciones`) | `webhook` (Slack, Discord, Teams…) o `both` | `notificar_candidato`, `consultar_mis_notificaciones` |
+
+Reglas de seguridad:
+
+- **Correo con destinatario verificado**: un voluntario solo puede escribir a su propio correo o al de una ONG a la que postuló; una ONG solo a su correo o a estudiantes que se postularon a sus retos; la administración puede escribir a cuentas registradas y a los dominios de `INTEGRATION_MAIL_ALLOWED_DOMAINS`. Hay cuota por hora y por día.
+- **Notificaciones con destinatario verificado**: una ONG solo puede avisar a estudiantes que se postularon a sus oportunidades; la administración, a cualquier cuenta registrada. El aviso aparece en la bandeja interna y, si está configurado, se replica al webhook del equipo.
+- **Cero URLs del usuario**: los endpoints de CRM, calendario, mesa de ayuda y webhook salen de `config/integrations.php`; el modelo nunca recibe ni decide URLs ni tokens. En producción se exige HTTPS.
+- **Datos mínimos en la bitácora**: el cuerpo del correo no se guarda (solo su longitud) y los tokens nunca se persisten en claro.
+- **Confirmación de un solo uso** para toda escritura, igual que en el widget web.
+
+### API del asistente
+
+La misma lógica del widget, sin sesión ni CSRF, para que un CRM, una app interna o un agente MCP converse con Vera. Los tokens se emiten en `/admin/integraciones` o con `php artisan api:token`.
+
+```bash
+# Emitir un token público (solo datos públicos, sin cuenta)
+php artisan api:token "Portal de aliados" --role=public --scopes=assistant:chat
+
+# Emitir un token atado a una cuenta (datos privados de esa cuenta)
+php artisan api:token "Backoffice ONG" --role=organizacion \
+  --email=ong@voluntmatch.test --scopes=assistant:chat --scopes=assistant:tools --scopes=assistant:confirm --days=90
+```
+
+| Método y ruta | Scope | Uso |
+| --- | --- | --- |
+| `POST /api/v1/assistant/messages` | `assistant:chat` | Envía `message` y `conversation_id` opcional; devuelve respuesta, fuentes, enlaces, sugerencias y confirmaciones pendientes. |
+| `POST /api/v1/chat/completions` | `assistant:chat` | Interfaz compatible con OpenAI Chat Completions para enchufar a Vera en clientes que ya hablan ese protocolo (sin streaming). |
+| `GET /api/v1/assistant/history` | `assistant:chat` | Historial de la conversación propia. |
+| `POST /api/v1/assistant/confirm` | `assistant:confirm` | Canjea un token de confirmación con `decision=accept\|cancel`. |
+| `POST /api/v1/assistant/reset` | `assistant:chat` | Cierra el hilo actual. |
+| `GET /api/v1/tools` | `assistant:tools` | Catálogo de herramientas autorizadas para el rol del token. |
+| `POST /api/v1/tools/{tool}` | `assistant:tools` | Invoca una herramienta con `arguments` (sin pasar por el modelo). |
+| `GET\|POST /api/v1/mcp` | `mcp:use` | Servidor MCP (JSON-RPC 2.0 sobre HTTP). |
+| `GET /api/v1/health` | — | Estado del servicio (sin datos). |
+
+```bash
+curl -X POST http://localhost:8000/api/v1/assistant/messages \
+  -H "Authorization: Bearer vm_…" \
+  -H "Content-Type: application/json" \
+  -d '{"message":"Busca oportunidades de educación"}'
+```
+
+Para clientes que esperan el protocolo de OpenAI, el mismo token sirve en `POST /api/v1/chat/completions`:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/chat/completions \
+  -H "Authorization: Bearer vm_…" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"vera","messages":[{"role":"user","content":"¿Cómo me registro?"}]}'
+```
+
+Cada token queda atado a un rol (`public`, `voluntario`, `organizacion`, `admin`) y, si es privado, a una cuenta concreta. El rol **no** se puede cambiar desde el cuerpo de la petición. Las respuestas de la API usan `Cache-Control: no-store` y la cuota se mide por token.
+
+### Servidor MCP (salida)
+
+`POST /api/v1/mcp` habla MCP Streamable HTTP (JSON-RPC 2.0) con `Authorization: Bearer vm_…` y scope `mcp:use`. Implementa `initialize`, `notifications/initialized`, `ping`, `tools/list` y `tools/call`.
+
+- `tools/list` publica solo herramientas locales (`server: local`) autorizadas para el rol del token.
+- `tools/call` devuelve `content` textual, `structuredContent` con el resultado y `isError`.
+- Las escrituras responden con `requires_confirmation` y un token; el agente lo canjea llamando a `confirmar_accion`. Ese token es de un solo uso y está atado al cliente que lo generó.
+- El servidor es *stateless*: no se guarda sesión; `Mcp-Session-Id` se devuelve en `initialize` y el cliente puede reenviarlo.
+
+Ejemplo de configuración en un cliente MCP:
+
+```json
+{
+  "mcpServers": {
+    "voluntmatch": {
+      "url": "https://voluntmatch.org/api/v1/mcp",
+      "headers": { "Authorization": "Bearer vm_…" }
+    }
+  }
+}
+```
+
+> Para conectar el asistente **hacia** servidores MCP de terceros (Gmail, HubSpot, Google Calendar, Zendesk…) se usa `CHATBOT_MCP_SERVERS` con allowlist por servidor. La API y el servidor MCP de VoluntMatch son la dirección inversa: otros agentes consumen nuestras herramientas.
+
+
+### Endpoints del asistente
+
+| Ruta | Uso |
+| --- | --- |
+| `POST /asistente/mensaje` | Envia un mensaje y devuelve respuesta, fuentes, enlaces, sugerencias y confirmaciones pendientes. |
+| `GET /asistente/historial` | Historial de la conversacion propia (el UUID se valida contra el dueno). |
+| `POST /asistente/confirmar` | Confirma o cancela una accion pendiente con token de un solo uso. |
+| `POST /asistente/reiniciar` | Cierra el hilo actual y empieza uno nuevo. |
+
+### Modos de funcionamiento
+
+- **Local (por defecto)**: no necesita API externa. Responde con RAG extractivo y
+  herramientas locales. Es el modo de los tests y el que funciona sin configurar nada.
+- **OpenAI-compatible**: define `CHATBOT_DRIVER=openai`, `CHATBOT_LLM_BASE_URL` y
+  `CHATBOT_LLM_API_KEY`. Funciona con OpenAI, Azure OpenAI, Ollama, vLLM u otro endpoint
+  compatible con Chat Completions. El modelo puede consultar las herramientas permitidas
+  mediante function calling.
+- **MCP remoto**: define `CHATBOT_MCP_ENABLED=true` y `CHATBOT_MCP_SERVERS` como JSON.
+  Cada servidor debe declarar `allowed_tools`, `audiences` y, si aplica, `read_only`.
+  Los servidores sin allowlist no exponen ninguna herramienta. Por defecto una
+  herramienta remota se considera de escritura y exige confirmacion; marca
+  `read_only: true` solo para consultas. En produccion se exige HTTPS.
+
+```bash
+# Tras editar documentos de conocimiento:
+php artisan chatbot:reindex
+```
+
+Las variables disponibles estan comentadas en `.env.example`. El asistente se puede apagar
+por completo con `CHATBOT_ENABLED=false`.
 
 ## Que funciona y que es prototipo
 
@@ -204,10 +349,13 @@ secciones viven bajo el prefijo `/admin` y comparten la plantilla
 | Panel de la ONG: oportunidades, talento, candidatos y publicacion de retos | Funciona con datos reales de la organizacion |
 | Match Inbox (aceptar, rechazar, mover etapas y notas internas) | Funciona (persiste en `postulaciones`; solo la ONG duena puede modificarlo) |
 | Chats de voluntario y ONG | Prototipo: los mensajes viven solo en la sesion de la pagina |
+| Asistente virtual (Vera) | Funciona: RAG con audiencias, herramientas locales/MCP, guardrails, cache, router, confirmaciones de escritura, historial y observabilidad en `/admin/asistente` |
+| API del asistente y servidor MCP | Funciona: tokens con rol/scopes/cuota, conversación, historial, herramientas directas, confirmación en dos pasos y MCP JSON-RPC |
+| Correo, calendario, CRM, mesa de ayuda y notificaciones | Funciona: drivers locales por defecto (CRM en BD, invitaciones `.ics` firmadas, tickets internos, bandeja `/notificaciones`) y drivers HTTP para proveedores externos |
 | Verificacion de ONG, suspension/reactivacion de cuentas, cambio de rol, reportes, tickets, anuncios y export CSV | Funciona (persiste en BD y queda en la bitacora) |
 | Analiticas del admin y dashboard maestro | Funciona: se calculan sobre las tablas reales, sin datos fijos |
 | Pesos del algoritmo de matching y reglas de moderacion | Funciona: se guardan en `configuraciones` (el motor de recomendacion aun no los consume) |
-| Notificaciones por correo, pagos, SMS | No implementado |
+| Pagos y SMS | No implementado |
 
 ## Como correr el proyecto
 
@@ -242,13 +390,13 @@ composer install
 php artisan test          # o: ./vendor/bin/phpunit
 ```
 
-La suite cubre: registro por rol (incluido el intento de colar `role=admin`), registro de ONG con datos minimos y ventana publica, bolsa de errores independiente para ONG, validacion de DNI y RUC con digito verificador, acceso a los paneles por rol, limitador de intentos del login, los seeders de admin, oportunidades (3 ONG x 10 retos) y comunidad, la postulacion persistente (desde ficha y desde la baraja), las paginas de los paneles de estudiante y ONG, el mapa de fortalezas en vivo, las ventanas de postulacion y perfil, la gestion real del Match Inbox y el panel de administracion (suspension, roles, verificacion de ONG, curaduria, reportes, soporte, anuncios, configuracion y exportacion CSV).
+La suite cubre: registro por rol (incluido el intento de colar `role=admin`), registro de ONG con datos minimos y ventana publica, bolsa de errores independiente para ONG, validacion de DNI y RUC con digito verificador, acceso a los paneles por rol, limitador de intentos del login, los seeders de admin, oportunidades (3 ONG x 10 retos) y comunidad, la postulacion persistente (desde ficha y desde la baraja), las paginas de los paneles de estudiante y ONG, el mapa de fortalezas en vivo, las ventanas de postulacion y perfil, la gestion real del Match Inbox y el panel de administracion (suspension, roles, verificacion de ONG, curaduria, reportes, soporte, anuncios, configuracion y exportacion CSV). El asistente tiene pruebas propias de RAG, cache, prompt injection, acceso por rol, confirmacion de tickets, historial, filtrado de audiencias y observabilidad. La API y las integraciones tienen pruebas de token, scopes, aislamiento por cuenta, confirmacion en dos pasos, handshake MCP, correo con destinatarios autorizados, invitaciones `.ics`, CRM, mesa de ayuda, notificaciones y bitacora sin cuerpos sensibles.
 
 ## Roadmap
 
-- Backend para el rechazo con correo real y las metricas exportables.
+- Cola asíncrona con reintentos y backoff para entregas de integraciones.
 - Edicion y archivado de oportunidades desde el panel de la ONG.
-- Persistencia de mensajes con eventos y notificaciones.
+- Persistencia de mensajes con eventos y notificaciones en tiempo real.
 - Adjuntar documentos de verificacion de ONG y descargarlos desde el panel.
 - Que el motor de recomendaciones consuma los pesos guardados en `configuraciones`.
 - Paginacion en el catalogo publico de oportunidades.
