@@ -13,12 +13,23 @@ class OportunidadSeederTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_siembra_las_oportunidades_demo_en_la_tabla_real(): void
+    public function test_siembra_tres_ong_con_diez_oportunidades_cada_una(): void
     {
         $this->seed(\Database\Seeders\OportunidadSeeder::class);
 
-        $this->assertSame(3, Oportunidad::count());
+        $this->assertSame(30, Oportunidad::count());
         $this->assertSame(3, Organizacion::count());
+
+        Organizacion::withCount('oportunidades')->get()->each(function (Organizacion $organizacion) {
+            $this->assertSame(
+                10,
+                $organizacion->oportunidades_count,
+                "La ONG {$organizacion->nombre} debería tener diez oportunidades distintas."
+            );
+        });
+
+        $this->assertSame(30, Oportunidad::distinct()->count('titulo'));
+        $this->assertSame(30, Oportunidad::distinct()->count('slug'));
 
         $primera = Oportunidad::first();
         $this->assertSame('Rediseño web accesible', $primera->titulo);
@@ -46,7 +57,7 @@ class OportunidadSeederTest extends TestCase
         $this->seed(\Database\Seeders\OportunidadSeeder::class);
         $this->seed(\Database\Seeders\OportunidadSeeder::class);
 
-        $this->assertSame(3, Oportunidad::count());
+        $this->assertSame(30, Oportunidad::count());
         $this->assertSame(3, Organizacion::count());
     }
 

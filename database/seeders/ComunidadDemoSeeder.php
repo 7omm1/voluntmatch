@@ -6,13 +6,14 @@ use App\Models\Oportunidad;
 use App\Models\Organizacion;
 use App\Models\Postulacion;
 use App\Models\User;
-use App\Support\Peru;
+use App\Support\OportunidadesDemo;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 /**
- * Comunidad de demostracion: varias ONG con cuenta propia y estudiantes
- * con perfil completo, para que ambos paneles tengan datos reales.
+ * Comunidad de demostracion: las tres ONG del catalogo, cada una con
+ * su cuenta de acceso, y estudiantes con perfil completo para que
+ * ambos paneles tengan datos reales.
  *
  * Credenciales: todas las cuentas usan la contrasenia "password".
  * Es idempotente: se puede ejecutar varias veces sin duplicar filas.
@@ -26,54 +27,45 @@ class ComunidadDemoSeeder extends Seeder
     {
         $this->passwordHash = Hash::make('password');
 
-        $organizaciones = $this->crearOrganizaciones();
+        // El catalogo es la fuente unica de oportunidades (3 ONG x 10).
+        $this->call(OportunidadSeeder::class);
+
+        $this->crearOrganizaciones();
         $voluntarios = $this->crearVoluntarios();
-        $oportunidades = $this->crearOportunidades($organizaciones);
-        $this->crearPostulaciones($voluntarios, $oportunidades);
+        $this->crearPostulaciones($voluntarios);
     }
 
     /** @return array<int, Organizacion> */
     private function crearOrganizaciones(): array
     {
-        $datos = [
-            ['Manos que Suman', 'manos@voluntmatch.test', 'Educación', 'Lima', 'Lima', 'Acompañamos a escolares de zonas vulnerables con refuerzo y mentoría.'],
-            ['Verde Vivo', 'verde@voluntmatch.test', 'Medio ambiente', 'Cusco', 'Cusco', 'Recuperamos áreas verdes y formamos brigadas ambientales escolares.'],
-            ['Código Ciudadano', 'codigo@voluntmatch.test', 'Tecnología', 'Arequipa', 'Arequipa', 'Creamos tecnología cívica abierta para organizaciones sociales.'],
-            ['Casa Abierta', 'casa@voluntmatch.test', 'Niñez y adolescencia', 'Piura', 'Piura', 'Abrimos espacios seguros y talleres para niñas, niños y adolescentes.'],
-            ['Salud en Red', 'salud@voluntmatch.test', 'Salud', 'La Libertad', 'Trujillo', 'Acercamos información y acompañamiento de salud a comunidades rurales.'],
-            ['Cultura Viva', 'cultura@voluntmatch.test', 'Cultura y arte', 'Puno', 'Puno', 'Promovemos el arte, la memoria y las lenguas originarias del sur.'],
-        ];
-
         $organizaciones = [];
 
-        foreach ($datos as $indice => [$nombre, $email, $sector, $region, $ciudad, $mision]) {
-            $ruc = $this->rucDemo($indice + 1);
-
+        foreach (OportunidadesDemo::organizaciones() as $datos) {
             $usuario = User::updateOrCreate(
-                ['email' => $email],
+                ['email' => $datos['email']],
                 [
-                    'name' => $nombre,
+                    'name' => $datos['nombre'],
                     'password' => $this->passwordHash,
                     'role' => 'organizacion',
-                    'phone' => '9'.str_pad((string) (20000000 + $indice), 8, '0', STR_PAD_LEFT),
-                    'region' => $region,
-                    'city' => $ciudad,
-                    'ruc' => $ruc,
+                    'phone' => '9'.str_pad((string) (20000000 + count($organizaciones)), 8, '0', STR_PAD_LEFT),
+                    'region' => $datos['region'],
+                    'city' => $datos['ciudad'],
+                    'ruc' => $datos['ruc'],
                     'org_type' => 'ONG',
-                    'legal_rep' => 'Representante de '.$nombre,
-                    'sector' => $sector,
-                    'mission' => $mision,
-                    'website' => 'https://'.str($nombre)->slug().'.org',
+                    'legal_rep' => 'Representante de '.$datos['nombre'],
+                    'sector' => $datos['sector'],
+                    'mission' => $datos['mision'],
+                    'website' => 'https://'.str($datos['nombre'])->slug().'.org',
                 ],
             );
 
             $organizaciones[] = Organizacion::updateOrCreate(
-                ['user_id' => $usuario->id],
+                ['ruc' => $datos['ruc']],
                 [
-                    'nombre' => $nombre,
-                    'ruc' => $ruc,
-                    'sector' => $sector,
-                    'mision' => $mision,
+                    'user_id' => $usuario->id,
+                    'nombre' => $datos['nombre'],
+                    'sector' => $datos['sector'],
+                    'mision' => $datos['mision'],
                     'verificada' => true,
                     'verificada_at' => now(),
                 ],
@@ -130,75 +122,28 @@ class ComunidadDemoSeeder extends Seeder
     }
 
     /**
-     * @param  array<int, Organizacion>  $organizaciones
-     * @return array<int, Oportunidad>
-     */
-    private function crearOportunidades(array $organizaciones): array
-    {
-        $datos = [
-            [0, 'Web accesible para todos', 'Inclusión', 'UX/UI', '4 h/semana', 'Remoto', 94, 'Rediseñar el portal de la organización para que sea usable con lectores de pantalla.'],
-            [1, 'Refuerzo escolar en matemáticas', 'Educación', 'Docencia', '2 h/semana', 'Híbrido', 90, 'Acompañar a escolares de secundaria con refuerzo de matemáticas dos veces por semana.'],
-            [2, 'Campaña de reciclaje escolar', 'Medio ambiente', 'Comunicación', 'Proyecto puntual', 'Presencial', 86, 'Diseñar y difundir una campaña de reciclaje en colegios de la ciudad.'],
-            [3, 'Landing para donaciones', 'Tecnología', 'Desarrollo web', '6 h/semana', 'Remoto', 91, 'Construir una landing clara y rápida para recibir donaciones recurrentes.'],
-            [4, 'Acompañamiento a adultos mayores', 'Adultos mayores', 'Empatía', '3 h/semana', 'Presencial', 82, 'Visitas y talleres de memoria con personas adultas mayores de la comunidad.'],
-            [5, 'Podcast de salud comunitaria', 'Salud', 'Locución', '4 h/semana', 'Híbrido', 85, 'Producir episodios breves con consejos de salud para radios locales.'],
-            [3, 'Análisis de encuestas de impacto', 'Educación', 'Análisis de datos', '5 h/semana', 'Remoto', 88, 'Ordenar y analizar las encuestas de nuestros talleres para medir resultados.'],
-            [0, 'Identidad visual para comedor popular', 'Niñez y adolescencia', 'Diseño gráfico', '3 h/semana', 'Remoto', 87, 'Crear logotipo, menús y piezas para un comedor que atiende a 80 niños.'],
-            [1, 'Taller de huerto urbano', 'Medio ambiente', 'Agricultura', 'Semanal', 'Presencial', 80, 'Guiar talleres de huerto urbano con familias del barrio.'],
-            [1, 'Mentoría para emprendedores', 'Emprendimiento', 'Marketing', '2 h/semana', 'Remoto', 83, 'Acompañar a emprendedoras locales con su estrategia de comunicación.'],
-            [2, 'App de transporte accesible', 'Inclusión y discapacidad', 'React', '6 h/semana', 'Remoto', 95, 'Prototipar una app que avise rutas accesibles para sillas de ruedas.'],
-            [5, 'Traducción al quechua', 'Cultura y arte', 'Idiomas', 'Proyecto puntual', 'Remoto', 84, 'Traducir materiales educativos al quechua para escuelas rurales.'],
-        ];
-
-        $oportunidades = [];
-
-        foreach ($datos as $indice => [$org, $titulo, $causa, $habilidad, $dedicacion, $modalidad, $afinidad, $resumen]) {
-            $oportunidades[] = Oportunidad::updateOrCreate(
-                ['titulo' => $titulo],
-                [
-                    'organizacion_id' => $organizaciones[$org]->id,
-                    'causa' => $causa,
-                    'habilidad' => $habilidad,
-                    'dedicacion' => $dedicacion,
-                    'modalidad' => $modalidad,
-                    'afinidad' => $afinidad,
-                    'resumen' => $resumen,
-                    'aprenderas' => 'Experiencia real, acompañamiento del equipo y certificado digital para tu portafolio.',
-                    'porque' => [
-                        'Tu habilidad encaja con lo que busca la organización.',
-                        'La dedicación es compatible con tu ciclo académico.',
-                        'La causa está entre tus intereses.',
-                    ],
-                    'estado' => 'publicada',
-                ],
-            );
-        }
-
-        return $oportunidades;
-    }
-
-    /**
+     * Historial de postulaciones por estudiante. Se usan slugs para que
+     * el plan siga siendo valido aunque cambie el orden del catalogo.
+     *
      * @param  array<int, User>  $voluntarios
-     * @param  array<int, Oportunidad>  $oportunidades
      */
-    private function crearPostulaciones(array $voluntarios, array $oportunidades): void
+    private function crearPostulaciones(array $voluntarios): void
     {
-        // Indices explicitos para que la cuenta demo de Sofia tenga historial.
         $plan = [
-            0 => [[0, 'aceptado'], [4, 'en entrevista'], [10, 'en revision']],
-            1 => [[3, 'en entrevista'], [10, 'aceptado'], [0, 'en revision']],
-            2 => [[2, 'aceptado'], [11, 'en revision'], [7, 'en revision']],
-            3 => [[6, 'en revision'], [3, 'en revision'], [9, 'en entrevista']],
-            4 => [[4, 'aceptado'], [5, 'en entrevista']],
-            5 => [[8, 'en revision'], [2, 'en entrevista']],
-            6 => [[9, 'aceptado'], [7, 'en revision']],
-            7 => [[10, 'en entrevista'], [3, 'en revision']],
-            8 => [[1, 'aceptado'], [5, 'en revision']],
-            9 => [[7, 'en entrevista'], [8, 'en revision']],
-            10 => [[4, 'en revision'], [11, 'en entrevista']],
-            11 => [[9, 'en revision']],
-            12 => [[5, 'en revision'], [2, 'en revision']],
-            13 => [[9, 'en revision'], [6, 'aceptado']],
+            0 => [['rediseno-web-accesible', 'aceptado'], ['acompanamiento-a-familias', 'en entrevista'], ['app-de-rutas-accesibles', 'en revision']],
+            1 => [['app-de-rutas-accesibles', 'en entrevista'], ['analisis-de-encuestas-de-aprendizaje', 'aceptado'], ['rediseno-web-accesible', 'en revision']],
+            2 => [['campana-de-consumo-responsable', 'aceptado'], ['educacion-ambiental-en-colegios', 'en revision'], ['podcast-ambiental-juvenil', 'en revision']],
+            3 => [['analisis-de-encuestas-de-aprendizaje', 'en revision'], ['mapa-de-reciclaje-del-barrio', 'en revision'], ['orientacion-vocacional', 'en entrevista']],
+            4 => [['acompanamiento-a-familias', 'aceptado'], ['taller-de-tecnologia-adaptada', 'en entrevista']],
+            5 => [['huerto-urbano-comunitario', 'en revision'], ['campana-de-consumo-responsable', 'en entrevista']],
+            6 => [['campana-de-empleo-inclusivo', 'aceptado'], ['escuela-de-padres-y-madres', 'en revision']],
+            7 => [['app-de-rutas-accesibles', 'en entrevista'], ['diseno-de-material-didactico', 'en revision']],
+            8 => [['mentoria-de-matematicas', 'aceptado'], ['refuerzo-de-comprension-lectora', 'en revision']],
+            9 => [['senaletica-inclusiva-para-museos', 'en entrevista'], ['diseno-de-senaletica-del-bosque', 'en revision']],
+            10 => [['acompanamiento-a-familias', 'en revision'], ['educacion-ambiental-en-colegios', 'en entrevista']],
+            11 => [['orientacion-vocacional', 'en revision']],
+            12 => [['subtitulado-de-videos-educativos', 'en revision'], ['podcast-ambiental-juvenil', 'en revision']],
+            13 => [['analisis-de-encuestas-de-aprendizaje', 'aceptado'], ['tutoria-virtual-de-ingles', 'en revision']],
         ];
 
         $notas = [
@@ -207,44 +152,31 @@ class ComunidadDemoSeeder extends Seeder
             'Ya trabajé en un proyecto similar y quiero repetir la experiencia.',
         ];
 
+        $oportunidades = Oportunidad::query()
+            ->whereIn('slug', collect($plan)->flatten(1)->pluck(0)->unique())
+            ->get()
+            ->keyBy('slug');
+
         foreach ($plan as $indiceVoluntario => $asignaciones) {
-            foreach ($asignaciones as [$indiceOportunidad, $estado]) {
-                if (! isset($voluntarios[$indiceVoluntario], $oportunidades[$indiceOportunidad])) {
+            foreach ($asignaciones as [$slug, $estado]) {
+                $voluntario = $voluntarios[$indiceVoluntario] ?? null;
+                $oportunidad = $oportunidades->get($slug);
+
+                if ($voluntario === null || $oportunidad === null) {
                     continue;
                 }
 
                 Postulacion::firstOrCreate(
                     [
-                        'user_id' => $voluntarios[$indiceVoluntario]->id,
-                        'oportunidad_id' => $oportunidades[$indiceOportunidad]->id,
+                        'user_id' => $voluntario->id,
+                        'oportunidad_id' => $oportunidad->id,
                     ],
                     [
                         'estado' => $estado,
-                        'nota' => $notas[($indiceVoluntario + $indiceOportunidad) % count($notas)],
+                        'nota' => $notas[($indiceVoluntario + $oportunidad->id) % count($notas)],
                     ],
                 );
             }
         }
-    }
-
-    /** Genera un RUC de demostracion que pasa el digito verificador. */
-    private function rucDemo(int $semilla): string
-    {
-        $base = '20'.str_pad((string) (10000000 + $semilla), 8, '0', STR_PAD_LEFT);
-        $factores = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
-        $suma = 0;
-
-        for ($i = 0; $i < 10; $i++) {
-            $suma += (int) $base[$i] * $factores[$i];
-        }
-
-        $digito = (11 - ($suma % 11)) % 10;
-        $ruc = $base.$digito;
-
-        if (! Peru::rucValido($ruc)) {
-            $this->command?->warn("RUC de demostracion invalido: {$ruc}");
-        }
-
-        return $ruc;
     }
 }

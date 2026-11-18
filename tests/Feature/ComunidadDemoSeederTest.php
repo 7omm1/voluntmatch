@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Oportunidad;
+use App\Models\Organizacion;
 use App\Models\Postulacion;
 use App\Models\User;
 use Database\Seeders\ComunidadDemoSeeder;
@@ -13,14 +14,19 @@ class ComunidadDemoSeederTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_siembra_varias_ong_y_estudiantes_con_postulaciones(): void
+    public function test_siembra_tres_ong_con_diez_oportunidades_y_estudiantes_con_postulaciones(): void
     {
         $this->seed(ComunidadDemoSeeder::class);
 
-        $this->assertSame(6, User::where('role', 'organizacion')->count());
+        $this->assertSame(3, User::where('role', 'organizacion')->count());
         $this->assertSame(14, User::where('role', 'voluntario')->count());
-        $this->assertSame(12, Oportunidad::count());
+        $this->assertSame(30, Oportunidad::count());
         $this->assertGreaterThanOrEqual(25, Postulacion::count());
+
+        Organizacion::withCount('oportunidades')->get()->each(function (Organizacion $organizacion) {
+            $this->assertSame(10, $organizacion->oportunidades_count);
+            $this->assertNotNull($organizacion->user_id);
+        });
     }
 
     public function test_las_cuentas_demo_pueden_iniciar_sesion_y_ver_su_panel(): void
@@ -54,7 +60,7 @@ class ComunidadDemoSeederTest extends TestCase
     {
         $this->seed(ComunidadDemoSeeder::class);
 
-        $cuenta = User::where('email', 'manos@voluntmatch.test')->firstOrFail();
+        $cuenta = User::where('email', 'horizonte@voluntmatch.test')->firstOrFail();
 
         foreach ([
             'ong.resumen',
@@ -67,8 +73,8 @@ class ComunidadDemoSeederTest extends TestCase
             $this->actingAs($cuenta)->get(route($ruta))->assertOk();
         }
 
-        $this->actingAs($cuenta)->get(route('ong.resumen'))->assertSee('Manos que Suman');
+        $this->actingAs($cuenta)->get(route('ong.resumen'))->assertSee('Fundación Horizonte');
         $this->actingAs($cuenta)->get(route('ong.candidatos'))->assertSee('Postula a:');
-        $this->actingAs($cuenta)->get(route('ong.oportunidades'))->assertSee('Web accesible para todos');
+        $this->actingAs($cuenta)->get(route('ong.oportunidades'))->assertSee('Rediseño web accesible');
     }
 }

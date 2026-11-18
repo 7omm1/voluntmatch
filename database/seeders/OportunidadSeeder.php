@@ -9,36 +9,40 @@ use App\Support\Peru;
 use Illuminate\Database\Seeder;
 
 /**
- * Siembra el catalogo de oportunidades de demostracion en la tabla
- * real `oportunidades` (y las organizaciones que las publican en
- * `organizaciones`). Es idempotente: puede correrse varias veces.
+ * Siembra el catalogo de demostracion: tres ONG y diez oportunidades
+ * distintas por ONG en la tabla real `oportunidades` (y las
+ * organizaciones que las publican en `organizaciones`).
+ *
+ * Es idempotente: puede correrse varias veces sin duplicar filas.
  */
 class OportunidadSeeder extends Seeder
 {
     public function run(): void
     {
-        $rucs = [
-            'Fundación Horizonte' => '20100047218',
-            'Aula Abierta' => '20533284362',
-            'Raíz Colectiva' => '20123456786',
-        ];
+        $organizaciones = [];
 
-        foreach (OportunidadesDemo::todas() as $demo) {
-            $organizacion = Organizacion::updateOrCreate(
-                ['ruc' => $rucs[$demo['org']]],
+        foreach (OportunidadesDemo::organizaciones() as $datos) {
+            $organizaciones[$datos['nombre']] = Organizacion::updateOrCreate(
+                ['ruc' => $datos['ruc']],
                 [
-                    'nombre' => $demo['org'],
-                    'sector' => $demo['cause'],
-                    'mision' => $demo['summary'],
+                    'nombre' => $datos['nombre'],
+                    'sector' => $datos['sector'],
+                    'mision' => $datos['mision'],
                     'verificada' => true,
                 ],
             );
 
+            if (! Peru::rucValido($datos['ruc'])) {
+                $this->command?->warn("El RUC de demostracion {$datos['ruc']} no pasa la validacion; revisa OportunidadSeeder.");
+            }
+        }
+
+        foreach (OportunidadesDemo::todas() as $demo) {
             Oportunidad::updateOrCreate(
-                ['titulo' => $demo['title']],
+                ['slug' => $demo['slug']],
                 [
-                    'organizacion_id' => $organizacion->id,
-                    'slug' => $demo['slug'],
+                    'organizacion_id' => $organizaciones[$demo['org']]->id,
+                    'titulo' => $demo['title'],
                     'causa' => $demo['cause'],
                     'habilidad' => $demo['skill'],
                     'dedicacion' => $demo['time'],
@@ -48,15 +52,9 @@ class OportunidadSeeder extends Seeder
                     'resumen' => $demo['summary'],
                     'aprenderas' => $demo['aprenderas'],
                     'porque' => $demo['porque'],
+                    'estado' => 'publicada',
                 ],
             );
-        }
-
-        // Sanidad: los RUC sembrados pasan el digito verificador.
-        foreach ($rucs as $ruc) {
-            if (! Peru::rucValido($ruc)) {
-                $this->command?->warn("El RUC de demostracion {$ruc} no pasa la validacion; revisa OportunidadSeeder.");
-            }
         }
     }
 }

@@ -50,11 +50,53 @@ class PerfilVoluntario
     /** Porcentaje ponderado de perfil completado (0-100). */
     public static function porcentaje(?User $user): int
     {
-        $items = self::checklist($user);
-        $total = array_sum(array_column($items, 'peso'));
-        $logrado = array_sum(array_map(fn ($item) => $item['done'] ? $item['peso'] : 0, $items));
+        $puntos = self::puntos($user);
 
-        return $total > 0 ? (int) round($logrado / $total * 100) : 0;
+        return $puntos['total'] > 0 ? (int) round($puntos['logrado'] / $puntos['total'] * 100) : 0;
+    }
+
+    /**
+     * Puntos del perfil. El Skills Passport aporta de forma progresiva:
+     * cada punto de fortaleza suma al porcentaje aunque aun no se haya
+     * guardado, para que el mapa de fortalezas se sienta vivo.
+     *
+     * @return array{logrado: float, base: float, total: int, skillsPeso: int, skillsLogrado: float}
+     */
+    public static function puntos(?User $user, ?array $skills = null): array
+    {
+        $items = self::checklist($user);
+        $skills = $skills ?? self::skills($user);
+        $media = count($skills) > 0 ? array_sum($skills) / count($skills) : 0;
+
+        $logrado = 0.0;
+        $base = 0.0;
+        $total = 0;
+        $skillsPeso = 0;
+
+        foreach ($items as $item) {
+            $total += $item['peso'];
+
+            if ($item['key'] === 'skills') {
+                $skillsPeso = $item['peso'];
+
+                continue;
+            }
+
+            if ($item['done']) {
+                $logrado += $item['peso'];
+                $base += $item['peso'];
+            }
+        }
+
+        $skillsLogrado = $skillsPeso * ($media / 100);
+
+        return [
+            'logrado' => $logrado + $skillsLogrado,
+            'base' => $base,
+            'total' => $total,
+            'skillsPeso' => $skillsPeso,
+            'skillsLogrado' => $skillsLogrado,
+        ];
     }
 
     /**
