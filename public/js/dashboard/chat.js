@@ -6,6 +6,8 @@
    DASHBOARD — chat
 ============================================================ */
 document.querySelectorAll('[data-chat-form]').forEach((form) => {
+    if (form.dataset.chatBound === '1') return;
+    form.dataset.chatBound = '1';
     const input = form.querySelector('[data-chat-input]');
     const list = document.querySelector('[data-chat]');
     form.addEventListener('submit', (event) => {

@@ -39,6 +39,7 @@ class VoluntarioPanelController extends Controller
         $datos = $this->contexto();
         $datos['puedeHacerMatch'] = PerfilVoluntario::puedeHacerMatch($datos['user']);
         $datos['faltantesClave'] = PerfilVoluntario::faltantesClave($datos['user']);
+        $datos['puntos'] = PerfilVoluntario::puntos($datos['user']);
 
         return view('panel.voluntario.skills', $datos);
     }
@@ -60,6 +61,8 @@ class VoluntarioPanelController extends Controller
             'entrevista' => $datos['postulaciones']->where('estado', 'en entrevista')->count(),
             'aceptadas' => $datos['postulaciones']->where('estado', 'aceptado')->count(),
         ];
+        $datos['faltantes'] = PerfilVoluntario::faltantes($datos['user']);
+        $datos['puntos'] = PerfilVoluntario::puntos($datos['user']);
 
         return view('panel.voluntario.postulaciones', $datos);
     }

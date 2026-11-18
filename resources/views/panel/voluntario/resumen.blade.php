@@ -31,7 +31,7 @@
             </article>
             <article>
                 <span><x-icon name="users" /></span>
-                <strong>{{ $porcentaje }}%</strong>
+                <strong data-profile-percent>{{ $porcentaje }}%</strong>
                 <p>Perfil completo</p>
                 <small>Completa tu Skills Passport</small>
             </article>
@@ -74,13 +74,13 @@
                     </div>
                 </div>
                 <div class="profile-ring">
-                    <strong>{{ $porcentaje }}%</strong>
+                    <strong data-profile-percent>{{ $porcentaje }}%</strong>
                     <span>completado</span>
                 </div>
                 <p>Añade una habilidad técnica para mejorar tus matches.</p>
-                <a class="jelly-button small" href="{{ route('voluntario.skills') }}">
+                <button type="button" class="jelly-button small" data-profile-open>
                     Completar perfil <x-icon name="arrow" />
-                </a>
+                </button>
             </section>
         </div>
     </div>

@@ -35,6 +35,7 @@
     <script src="{{ asset('js/dashboard/proyectos.js') }}" defer></script>
     <script src="{{ asset('js/dashboard/inbox.js') }}" defer></script>
     <script src="{{ asset('js/dashboard/metricas.js') }}" defer></script>
+    <script src="{{ asset('js/dashboard/panel-nav.js') }}" defer></script>
 </head>
 <body>
     <div class="app-shell">
