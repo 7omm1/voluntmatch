@@ -36,6 +36,7 @@ class PanelOngTest extends TestCase
             'ong.candidatos',
             'ong.metricas',
             'ong.mensajes',
+            'ong.perfil',
         ] as $ruta) {
             $this->actingAs($user)->get(route($ruta))->assertOk();
         }
