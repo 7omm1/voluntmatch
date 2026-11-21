@@ -326,12 +326,17 @@ Ejemplo de configuración en un cliente MCP:
 
 | Driver | Base URL | Modelo por defecto | Embeddings |
 | --- | --- | --- | --- |
-| `gemini` | `generativelanguage.googleapis.com/v1beta/openai` | `gemini-2.5-flash` | Sí |
+| `gemini` | `generativelanguage.googleapis.com/v1beta/openai` | `gemini-flash-lite-latest` | Sí |
 | `openai` | `api.openai.com/v1` | `gpt-4.1-mini` | Sí |
 | `groq` | `api.groq.com/openai/v1` | `llama-3.3-70b-versatile` | No |
 | `deepseek` | `api.deepseek.com/v1` | `deepseek-chat` | No |
 | `openrouter` | `openrouter.ai/api/v1` | `google/gemini-2.5-flash` | No |
 | `ollama` | `localhost:11434/v1` | `llama3.1` | Sí |
+
+Google retira modelos con frecuencia: para Gemini conviene usar los alias
+`gemini-flash-lite-latest`, `gemini-flash-latest` o `gemini-3.8-flash` en lugar
+de versiones cerradas. Si el modelo configurado deja de existir, el asistente
+cae al modo local y `chatbot:doctor` muestra el mensaje exacto del proveedor.
 
 `CHATBOT_LLM_API_KEY` también acepta el nombre estándar del proveedor
 (`GEMINI_API_KEY`, `OPENAI_API_KEY`, `GROQ_API_KEY`, `DEEPSEEK_API_KEY`,

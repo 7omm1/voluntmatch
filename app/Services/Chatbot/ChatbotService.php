@@ -495,7 +495,7 @@ class ChatbotService
 
                 $assistantCalls = [];
                 foreach ($response['tool_calls'] as $call) {
-                    $assistantCalls[] = [
+                    $assistantCall = [
                         'id' => $call['id'] ?: 'call_'.Str::random(12),
                         'type' => 'function',
                         'function' => [
@@ -503,6 +503,12 @@ class ChatbotService
                             'arguments' => json_encode($call['arguments'], JSON_UNESCAPED_UNICODE),
                         ],
                     ];
+
+                    if (! empty($call['extra_content'])) {
+                        $assistantCall['extra_content'] = $call['extra_content'];
+                    }
+
+                    $assistantCalls[] = $assistantCall;
                 }
 
                 $messages[] = [

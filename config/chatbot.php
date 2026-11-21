@@ -26,9 +26,10 @@ $presets = [
     ],
     'gemini' => [
         'base_url' => 'https://generativelanguage.googleapis.com/v1beta/openai',
-        'model' => 'gemini-2.5-flash',
-        'model_small' => 'gemini-2.5-flash-lite',
-        'model_large' => 'gemini-2.5-pro',
+        // Google retira modelos rápido. Los alias -latest apuntan al vigente.
+        'model' => 'gemini-flash-lite-latest',
+        'model_small' => 'gemini-flash-lite-latest',
+        'model_large' => 'gemini-flash-lite-latest',
         'embedding_model' => 'gemini-embedding-001',
         'embeddings' => true,
     ],
@@ -117,7 +118,7 @@ return [
         'max_tokens' => (int) env('CHATBOT_LLM_MAX_TOKENS', 700),
         'timeout' => (int) env('CHATBOT_LLM_TIMEOUT', 20),
         'connect_timeout' => (int) env('CHATBOT_LLM_CONNECT_TIMEOUT', 5),
-        'retries' => (int) env('CHATBOT_LLM_RETRIES', 1),
+        'retries' => (int) env('CHATBOT_LLM_RETRIES', 2),
         'history_limit' => (int) env('CHATBOT_LLM_HISTORY_LIMIT', 10),
         'answer_without_context' => (bool) env('CHATBOT_LLM_ANSWER_WITHOUT_CONTEXT', true),
     ],

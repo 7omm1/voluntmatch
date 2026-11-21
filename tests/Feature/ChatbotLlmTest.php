@@ -112,17 +112,98 @@ class ChatbotLlmTest extends TestCase
         $this->assertFalse($llm->supportsEmbeddings());
     }
 
+    public function test_el_function_calling_conserva_el_thought_signature_de_gemini(): void
+    {
+        Http::fake([
+            'llm.test/*' => Http::sequence()
+                ->push($this->completionWithToolCall([
+                    'id' => 'call_123',
+                    'type' => 'function',
+                    'function' => [
+                        'name' => 'buscar_oportunidades',
+                        'arguments' => json_encode(['query' => 'educación']),
+                    ],
+                    'extra_content' => [
+                        'google' => ['thought_signature' => 'firma-de-prueba'],
+                    ],
+                ]))
+                ->push($this->completion('Encontré 3 oportunidades.')),
+        ]);
+
+        $response = $this->postJson(route('chatbot.mensaje'), [
+            'message' => 'Quiero ayudar en educación',
+        ])->assertOk();
+
+        $this->assertStringContainsString('Encontré 3 oportunidades', (string) $response->json('message'));
+
+        $peticiones = Http::recorded();
+        $this->assertCount(2, $peticiones);
+
+        $assistant = collect($peticiones[1][0]->data()['messages'])
+            ->firstWhere('role', 'assistant');
+
+        $this->assertSame(
+            'firma-de-prueba',
+            $assistant['tool_calls'][0]['extra_content']['google']['thought_signature']
+        );
+    }
+
+    public function test_el_error_del_proveedor_se_propaga_con_su_mensaje(): void
+    {
+        Http::fake([
+            'llm.test/*' => Http::response([
+                'error' => [
+                    'code' => 404,
+                    'message' => 'This model is no longer available to new users.',
+                ],
+            ], 404),
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('This model is no longer available to new users.');
+
+        app(LlmClient::class)->chat([['role' => 'user', 'content' => 'hola']]);
+    }
+
     public function test_los_presets_definen_urls_y_modelos_por_proveedor(): void
     {
         $this->assertSame(
             'https://generativelanguage.googleapis.com/v1beta/openai',
             config('chatbot.presets.gemini.base_url')
         );
-        $this->assertSame('gemini-2.5-flash', config('chatbot.presets.gemini.model'));
+        $this->assertSame('gemini-flash-lite-latest', config('chatbot.presets.gemini.model'));
         $this->assertTrue(config('chatbot.presets.gemini.embeddings'));
 
         $this->assertSame('https://api.groq.com/openai/v1', config('chatbot.presets.groq.base_url'));
         $this->assertFalse(config('chatbot.presets.groq.embeddings'));
+    }
+
+    /**
+     * @param  array<string, mixed>  $toolCall
+     * @return array<string, mixed>
+     */
+    private function completionWithToolCall(array $toolCall): array
+    {
+        return [
+            'id' => 'chatcmpl-test',
+            'object' => 'chat.completion',
+            'created' => now()->timestamp,
+            'model' => 'test-model',
+            'choices' => [[
+                'index' => 0,
+                'message' => [
+                    'role' => 'assistant',
+                    'content' => null,
+                    'tool_calls' => [$toolCall],
+                ],
+                'finish_reason' => 'tool_calls',
+            ]],
+            'usage' => [
+                'prompt_tokens' => 10,
+                'completion_tokens' => 5,
+                'total_tokens' => 15,
+            ],
+        ];
     }
 
     /**

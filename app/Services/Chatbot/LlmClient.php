@@ -3,6 +3,7 @@
 namespace App\Services\Chatbot;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
@@ -54,7 +55,7 @@ class LlmClient
      * @param  list<array<string, mixed>>  $tools
      * @return array{
      *     content: string,
-     *     tool_calls: list<array{id: string, name: string, arguments: array<string, mixed>}>,
+     *     tool_calls: list<array{id: string, name: string, arguments: array<string, mixed>, extra_content: array<string, mixed>|null}>,
      *     tokens_in: int,
      *     tokens_out: int,
      *     model: string
@@ -98,10 +99,14 @@ class LlmClient
                 $arguments = is_array($decoded) ? $decoded : [];
             }
 
+            // Gemini 3 exige devolver este bloque al reenviar la llamada.
+            $extra = $call['extra_content'] ?? null;
+
             $toolCalls[] = [
                 'id' => (string) ($call['id'] ?? ''),
                 'name' => (string) ($call['function']['name'] ?? ''),
                 'arguments' => is_array($arguments) ? $arguments : [],
+                'extra_content' => is_array($extra) ? $extra : null,
             ];
         }
 
@@ -139,6 +144,27 @@ class LlmClient
         return $vectors;
     }
 
+    private function errorDetail(mixed $body): string
+    {
+        if (is_string($body)) {
+            $body = json_decode($body, true);
+        }
+
+        if (! is_array($body)) {
+            return '';
+        }
+
+        $message = $body['error']['message'] ?? $body['error'] ?? $body['message'] ?? '';
+
+        if (is_array($message)) {
+            $message = $message['message'] ?? '';
+        }
+
+        $message = trim(preg_replace('/\s+/u', ' ', (string) $message) ?? '');
+
+        return Str::limit($message, 300, '…');
+    }
+
     /**
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
@@ -167,15 +193,21 @@ class LlmClient
 
         try {
             $response = $request->retry(
-                max(0, (int) config('chatbot.llm.retries', 1)),
-                200
+                max(1, (int) config('chatbot.llm.retries', 2)),
+                200,
+                throw: false
             )->post($base.$path, $payload);
         } catch (\Throwable $exception) {
             throw new RuntimeException('No se pudo contactar al proveedor de lenguaje.', 0, $exception);
         }
 
         if (! $response->successful()) {
-            throw new RuntimeException('El proveedor de lenguaje respondió con error '.$response->status().'.');
+            $detalle = $this->errorDetail($response->json());
+
+            throw new RuntimeException(
+                'El proveedor de lenguaje respondió con error '.$response->status()
+                .($detalle !== '' ? ': '.$detalle : '.')
+            );
         }
 
         $data = $response->json();
