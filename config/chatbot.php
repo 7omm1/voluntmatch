@@ -1,5 +1,83 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Presets de proveedores compatibles con OpenAI
+|--------------------------------------------------------------------------
+|
+| Todos hablan Chat Completions, así que el mismo cliente sirve para
+| cualquiera. El driver elige el preset y las variables de entorno pueden
+| sobrescribir base_url, modelos y embeddings.
+|
+| Cada preset es solo un valor por defecto: la clave siempre se lee de
+| CHATBOT_LLM_API_KEY. Ollama no necesita clave porque corre en local.
+|
+*/
+$driver = (string) env('CHATBOT_DRIVER', 'local');
+
+$presets = [
+    'openai' => [
+        'base_url' => 'https://api.openai.com/v1',
+        'model' => 'gpt-4.1-mini',
+        'model_small' => 'gpt-4.1-mini',
+        'model_large' => 'gpt-4.1',
+        'embedding_model' => 'text-embedding-3-small',
+        'embeddings' => true,
+    ],
+    'gemini' => [
+        'base_url' => 'https://generativelanguage.googleapis.com/v1beta/openai',
+        'model' => 'gemini-2.5-flash',
+        'model_small' => 'gemini-2.5-flash-lite',
+        'model_large' => 'gemini-2.5-pro',
+        'embedding_model' => 'gemini-embedding-001',
+        'embeddings' => true,
+    ],
+    'groq' => [
+        'base_url' => 'https://api.groq.com/openai/v1',
+        'model' => 'llama-3.3-70b-versatile',
+        'model_small' => 'llama-3.1-8b-instant',
+        'model_large' => 'llama-3.3-70b-versatile',
+        'embedding_model' => '',
+        'embeddings' => false,
+    ],
+    'deepseek' => [
+        'base_url' => 'https://api.deepseek.com/v1',
+        'model' => 'deepseek-chat',
+        'model_small' => 'deepseek-chat',
+        'model_large' => 'deepseek-reasoner',
+        'embedding_model' => '',
+        'embeddings' => false,
+    ],
+    'openrouter' => [
+        'base_url' => 'https://openrouter.ai/api/v1',
+        'model' => 'google/gemini-2.5-flash',
+        'model_small' => 'google/gemini-2.5-flash',
+        'model_large' => 'google/gemini-2.5-pro',
+        'embedding_model' => '',
+        'embeddings' => false,
+    ],
+    'ollama' => [
+        'base_url' => 'http://localhost:11434/v1',
+        'model' => 'llama3.1',
+        'model_small' => 'llama3.1',
+        'model_large' => 'llama3.1',
+        'embedding_model' => 'nomic-embed-text',
+        'embeddings' => true,
+    ],
+];
+
+$preset = $presets[$driver] ?? $presets['openai'];
+
+// En muchos hosts la clave ya existe con el nombre estándar del proveedor.
+$apiKeyEnv = match ($driver) {
+    'gemini' => 'GEMINI_API_KEY',
+    'openai' => 'OPENAI_API_KEY',
+    'groq' => 'GROQ_API_KEY',
+    'deepseek' => 'DEEPSEEK_API_KEY',
+    'openrouter' => 'OPENROUTER_API_KEY',
+    default => 'CHATBOT_LLM_API_KEY',
+};
+
 return [
 
     /*
@@ -19,24 +97,29 @@ return [
     |--------------------------------------------------------------------------
     |
     | 'local' responde con recuperación RAG extractiva y no necesita ninguna
-    | API externa. 'openai' usa cualquier endpoint compatible con Chat
-    | Completions (OpenAI, Azure OpenAI, Ollama, vLLM, etc.).
+    | API externa. Cualquier otro valor usa el preset correspondiente
+    | (openai, gemini, groq, deepseek, openrouter u ollama) y habla el
+    | protocolo OpenAI Chat Completions.
     |
     */
-    'driver' => env('CHATBOT_DRIVER', 'local'),
+    'driver' => $driver,
+
+    'presets' => $presets,
 
     'llm' => [
-        'base_url' => rtrim((string) env('CHATBOT_LLM_BASE_URL', 'https://api.openai.com/v1'), '/'),
-        'api_key' => env('CHATBOT_LLM_API_KEY'),
-        'model' => env('CHATBOT_LLM_MODEL', 'gpt-4.1-mini'),
-        'model_small' => env('CHATBOT_LLM_MODEL_SMALL', env('CHATBOT_LLM_MODEL', 'gpt-4.1-mini')),
-        'model_large' => env('CHATBOT_LLM_MODEL_LARGE', env('CHATBOT_LLM_MODEL', 'gpt-4.1-mini')),
-        'embedding_model' => env('CHATBOT_EMBEDDING_MODEL', 'text-embedding-3-small'),
+        'base_url' => rtrim((string) env('CHATBOT_LLM_BASE_URL', $preset['base_url']), '/'),
+        'api_key' => env('CHATBOT_LLM_API_KEY') ?: env($apiKeyEnv),
+        'model' => env('CHATBOT_LLM_MODEL', $preset['model']),
+        'model_small' => env('CHATBOT_LLM_MODEL_SMALL', env('CHATBOT_LLM_MODEL', $preset['model_small'])),
+        'model_large' => env('CHATBOT_LLM_MODEL_LARGE', env('CHATBOT_LLM_MODEL', $preset['model_large'])),
+        'embedding_model' => env('CHATBOT_EMBEDDING_MODEL', $preset['embedding_model']),
         'temperature' => (float) env('CHATBOT_LLM_TEMPERATURE', 0.2),
         'max_tokens' => (int) env('CHATBOT_LLM_MAX_TOKENS', 700),
         'timeout' => (int) env('CHATBOT_LLM_TIMEOUT', 20),
         'connect_timeout' => (int) env('CHATBOT_LLM_CONNECT_TIMEOUT', 5),
         'retries' => (int) env('CHATBOT_LLM_RETRIES', 1),
+        'history_limit' => (int) env('CHATBOT_LLM_HISTORY_LIMIT', 10),
+        'answer_without_context' => (bool) env('CHATBOT_LLM_ANSWER_WITHOUT_CONTEXT', true),
     ],
 
     /*
@@ -75,7 +158,7 @@ return [
         'chunk_chars' => (int) env('CHATBOT_RAG_CHUNK_CHARS', 700),
         'chunk_overlap' => (int) env('CHATBOT_RAG_CHUNK_OVERLAP', 90),
         'cache_ttl' => (int) env('CHATBOT_RAG_CACHE_TTL', 600),
-        'embeddings' => (bool) env('CHATBOT_RAG_EMBEDDINGS', false),
+        'embeddings' => (bool) env('CHATBOT_RAG_EMBEDDINGS', $preset['embeddings']),
     ],
 
     /*

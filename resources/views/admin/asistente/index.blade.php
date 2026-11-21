@@ -126,6 +126,15 @@
                 <span class="admin-row-main"><b>Acceso por audiencia</b><small>Herramientas y documentos filtrados por rol verificado en sesión.</small></span>
             </div>
             <div class="admin-row compact">
+                <span class="status {{ $metricas['proveedor']['configurado'] ? 'activo' : 'pendiente' }}">
+                    {{ $metricas['proveedor']['configurado'] ? 'Conectado' : 'Local' }}
+                </span>
+                <span class="admin-row-main">
+                    <b>Modelo de lenguaje</b>
+                    <small>{{ $metricas['proveedor']['driver'] }} · {{ $metricas['proveedor']['modelo'] }}</small>
+                </span>
+            </div>
+            <div class="admin-row compact">
                 <span class="status {{ config('chatbot.mcp.enabled') ? 'activo' : 'pendiente' }}">
                     {{ config('chatbot.mcp.enabled') ? 'Activo' : 'Desactivado' }}
                 </span>

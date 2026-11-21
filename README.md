@@ -313,19 +313,37 @@ Ejemplo de configuración en un cliente MCP:
 
 ### Modos de funcionamiento
 
-- **Local (por defecto)**: no necesita API externa. Responde con RAG extractivo y
-  herramientas locales. Es el modo de los tests y el que funciona sin configurar nada.
-- **OpenAI-compatible**: define `CHATBOT_DRIVER=openai`, `CHATBOT_LLM_BASE_URL` y
-  `CHATBOT_LLM_API_KEY`. Funciona con OpenAI, Azure OpenAI, Ollama, vLLM u otro endpoint
-  compatible con Chat Completions. El modelo puede consultar las herramientas permitidas
-  mediante function calling.
+- **Local**: no necesita API externa. Responde con RAG extractivo y herramientas
+  locales. Es el modo de los tests y el respaldo si falta la clave.
+- **Proveedor real**: define `CHATBOT_DRIVER` y `CHATBOT_LLM_API_KEY`. Todos los
+  drivers hablan el protocolo OpenAI Chat Completions y traen un preset propio.
+  El modelo puede consultar las herramientas permitidas mediante function calling.
 - **MCP remoto**: define `CHATBOT_MCP_ENABLED=true` y `CHATBOT_MCP_SERVERS` como JSON.
   Cada servidor debe declarar `allowed_tools`, `audiences` y, si aplica, `read_only`.
   Los servidores sin allowlist no exponen ninguna herramienta. Por defecto una
   herramienta remota se considera de escritura y exige confirmacion; marca
   `read_only: true` solo para consultas. En produccion se exige HTTPS.
 
+| Driver | Base URL | Modelo por defecto | Embeddings |
+| --- | --- | --- | --- |
+| `gemini` | `generativelanguage.googleapis.com/v1beta/openai` | `gemini-2.5-flash` | Sí |
+| `openai` | `api.openai.com/v1` | `gpt-4.1-mini` | Sí |
+| `groq` | `api.groq.com/openai/v1` | `llama-3.3-70b-versatile` | No |
+| `deepseek` | `api.deepseek.com/v1` | `deepseek-chat` | No |
+| `openrouter` | `openrouter.ai/api/v1` | `google/gemini-2.5-flash` | No |
+| `ollama` | `localhost:11434/v1` | `llama3.1` | Sí |
+
+`CHATBOT_LLM_API_KEY` también acepta el nombre estándar del proveedor
+(`GEMINI_API_KEY`, `OPENAI_API_KEY`, `GROQ_API_KEY`, `DEEPSEEK_API_KEY`,
+`OPENROUTER_API_KEY`). El asistente envía al modelo los últimos
+`CHATBOT_LLM_HISTORY_LIMIT` mensajes para mantener el hilo. Si el RAG no
+encuentra contexto, el modelo puede responder igualmente de forma honesta;
+desactívalo con `CHATBOT_LLM_ANSWER_WITHOUT_CONTEXT=false`.
+
 ```bash
+# Verifica URL, clave, modelo y embeddings antes de publicar:
+php artisan chatbot:doctor --embeddings
+
 # Tras editar documentos de conocimiento:
 php artisan chatbot:reindex
 ```

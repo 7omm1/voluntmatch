@@ -19,11 +19,26 @@ class LlmClient
 
     public function isConfigured(): bool
     {
-        if ($this->driver() !== 'openai') {
+        if ($this->driver() === 'local') {
             return false;
         }
 
-        return filled(config('chatbot.llm.api_key')) && filled(config('chatbot.llm.base_url'));
+        if (blank(config('chatbot.llm.base_url'))) {
+            return false;
+        }
+
+        // Ollama corre en la misma máquina y no usa clave.
+        if ($this->driver() === 'ollama') {
+            return true;
+        }
+
+        return filled(config('chatbot.llm.api_key'));
+    }
+
+    public function supportsEmbeddings(): bool
+    {
+        return $this->isConfigured()
+            && filled(config('chatbot.llm.embedding_model'));
     }
 
     public function modelFor(string $complexity = 'small'): string
@@ -140,6 +155,14 @@ class LlmClient
 
         if ($key !== '') {
             $request = $request->withToken($key);
+        }
+
+        // OpenRouter pide identificación del cliente para atribuir el uso.
+        if ($this->driver() === 'openrouter') {
+            $request = $request->withHeaders([
+                'HTTP-Referer' => (string) config('app.url'),
+                'X-Title' => (string) config('app.name'),
+            ]);
         }
 
         try {

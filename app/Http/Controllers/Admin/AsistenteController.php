@@ -7,6 +7,7 @@ use App\Models\ChatbotConversation;
 use App\Models\ChatbotMessage;
 use App\Models\ChatbotToolCall;
 use App\Models\ChatbotTrace;
+use App\Services\Chatbot\LlmClient;
 use Illuminate\Support\Collection;
 
 /**
@@ -18,6 +19,7 @@ class AsistenteController extends Controller
 {
     public function index()
     {
+        $llm = app(LlmClient::class);
         $totalTrazas = ChatbotTrace::count();
         $ultimas = ChatbotTrace::query()->latest()->limit(500)->get();
         $latencies = $ultimas->pluck('latency_ms')->sort()->values();
@@ -45,6 +47,11 @@ class AsistenteController extends Controller
                 'latencia_p95' => (int) ($latencies->isEmpty() ? 0 : $latencies[(int) floor(($latencies->count() - 1) * 0.95)]),
                 'bloqueos' => $bloqueos,
                 'herramientas' => ChatbotToolCall::count(),
+                'proveedor' => [
+                    'driver' => $llm->driver(),
+                    'modelo' => $llm->isConfigured() ? $llm->modelFor('small') : 'local',
+                    'configurado' => $llm->isConfigured(),
+                ],
             ],
             'intenciones' => $this->agrupado('intent'),
             'rutas' => $this->agrupado('route'),

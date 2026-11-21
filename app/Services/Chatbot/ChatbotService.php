@@ -3,6 +3,7 @@
 namespace App\Services\Chatbot;
 
 use App\Models\ChatbotConversation;
+use App\Models\ChatbotMessage;
 use App\Services\Chatbot\Mcp\ToolExecutor;
 use App\Services\Chatbot\Mcp\ToolRegistry;
 use App\Services\Chatbot\Rag\KnowledgeIndexer;
@@ -371,7 +372,10 @@ class ChatbotService
         }
         $sources = array_values($sources);
 
-        if ($this->llm->isConfigured() && $chunks !== []) {
+        $puedeUsarModelo = $this->llm->isConfigured()
+            && ($chunks !== [] || (bool) config('chatbot.llm.answer_without_context', true));
+
+        if ($puedeUsarModelo) {
             $llmResult = $this->runLlmWithTools($message, $context, $conversation, $requestId, $chunks);
 
             if ($llmResult !== null) {
@@ -394,6 +398,39 @@ class ChatbotService
     }
 
     /**
+     * Historial reciente para dar continuidad a la conversación.
+     *
+     * Se excluye el mensaje de esta petición porque ya se envía aparte con
+     * el contexto RAG. Nunca se envía contenido no almacenado.
+     *
+     * @return list<array{role: string, content: string}>
+     */
+    private function llmHistory(ChatbotConversation $conversation, string $requestId): array
+    {
+        $limit = max(0, (int) config('chatbot.llm.history_limit', 10));
+
+        if ($limit === 0) {
+            return [];
+        }
+
+        return $conversation->messages()
+            ->whereIn('role', ['user', 'assistant'])
+            ->where('request_id', '!=', $requestId)
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get(['role', 'content'])
+            ->reverse()
+            ->filter(fn (ChatbotMessage $message) => trim((string) $message->content) !== ''
+                && $message->content !== '[contenido no almacenado]')
+            ->map(fn (ChatbotMessage $message) => [
+                'role' => $message->role,
+                'content' => Str::limit((string) $message->content, 1500, '…'),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
      * Bucle de function calling con herramientas autorizadas.
      *
      * @param  array<string, mixed>  $context
@@ -412,6 +449,7 @@ class ChatbotService
 
         $messages = [
             ['role' => 'system', 'content' => $this->prompts->system($context['audience'], $context['user'], $toolNames)],
+            ...$this->llmHistory($conversation, $requestId),
             ['role' => 'user', 'content' => $this->prompts->userMessage($message, $chunks)],
         ];
 
