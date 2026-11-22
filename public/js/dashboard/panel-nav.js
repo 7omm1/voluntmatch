@@ -10,6 +10,28 @@
     const shell = document.querySelector('.dashboard-shell');
     if (!shell) return;
 
+    /* En móvil el menú del panel es un carrusel horizontal. Al cargar
+       una sección, desplazamos el carrusel solo lo necesario para que la
+       pestaña activa quede completamente visible. */
+    const revealActiveNavLink = (smooth = false) => {
+        const nav = shell.querySelector('.dashboard-sidebar nav');
+        const active = nav?.querySelector('a.active');
+        if (!nav || !active) return;
+        if (nav.scrollWidth <= nav.clientWidth + 2) return;
+
+        const margin = 18;
+        const navRect = nav.getBoundingClientRect();
+        const activeRect = active.getBoundingClientRect();
+        const start = activeRect.left - navRect.left + nav.scrollLeft;
+        const max = nav.scrollWidth - nav.clientWidth;
+        let target = Math.max(0, Math.min(start - margin, max));
+
+        if (Math.abs(target - nav.scrollLeft) < 1) return;
+
+        nav.scrollTo({ left: target, behavior: smooth ? 'smooth' : 'auto' });
+    };
+    revealActiveNavLink();
+
     const funcionaSinRecarga = shell.classList.contains('dashboard-student');
 
     /* Paneles ONG y admin: salida suave y recarga normal, para que el
@@ -43,16 +65,6 @@
     const nav = shell.querySelector('.dashboard-sidebar nav');
     let main = shell.querySelector('.dashboard-main');
     if (!nav || !main || !window.fetch || !window.history?.pushState) return;
-
-    /* En móvil el menú es un carrusel horizontal: dejamos visible la
-       sección activa sin mover el scroll vertical de la página. */
-    const centerActiveLink = () => {
-        const active = nav.querySelector('a.active');
-        if (!active) return;
-        const target = active.offsetLeft - nav.clientWidth / 2 + active.offsetWidth / 2;
-        nav.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
-    };
-    centerActiveLink();
 
     const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
     let navigating = false;
@@ -97,7 +109,7 @@
             main.replaceWith(nextMain);
             main = nextMain;
             if (nextNav) nav.innerHTML = nextNav.innerHTML;
-            centerActiveLink();
+            revealActiveNavLink(true);
 
             const modalSlot = document.querySelector('[data-panel-modals]');
             const nextModalSlot = doc.querySelector('[data-panel-modals]');
